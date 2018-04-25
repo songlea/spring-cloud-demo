@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.songlea.demo.cloud.eureka</groupId>
+    <artifactId>spring-cloud-demo</artifactId>
+    <!--
+        在Maven3中其可用的打包类型如下:jar(默认类型)、war、ejb、ear、rar、par、pom、maven-plugin
+        Maven 3支持Maven项目的多模块（multi-modules）结构：
+            这样的Maven项目也被称为聚合项目,通常由一个父模块和若干个子模块构成;
+            其中父模块必须以pom打包类型,同时以<modules>给出所有的子模块;
+            其中的每个module都是另外一个Maven项目;
+     -->
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>spring-cloud</name>
+    <description>Demo project for Spring Cloud</description>
+    <url>https://cloud.spring.io/spring-cloud-static/Edgware.RELEASE/multi/multi_spring-cloud.html</url>
+
+    <modules>
+        <!-- 模块:包括服务注册中心,服务提供者,服务网关 -->
+        <module>service-discovery</module>
+        <module>service-gateway</module>
+        <module>calculator-customer</module>
+        <module>calculator-service</module>
+        <module>turbine-monitor</module>
+        <module>admin-monitor</module>
+    </modules>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.12.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <project.build.email>lsong329483@gmail.com</project.build.email>
+        <project.build.cellphone>18715278703</project.build.cellphone>
+        <!--各个模块名称定义-->
+        <project.module.service.discovery>service-discovery</project.module.service.discovery>
+        <project.module.service.gateway>service-gateway</project.module.service.gateway>
+        <project.module.turbine.monitor>turbine-monitor</project.module.turbine.monitor>
+        <project.module.admin.monitor>admin-monitor</project.module.admin.monitor>
+        <project.module.calculator.service>calculator-service</project.module.calculator.service>
+        <project.module.calculator.customer>calculator-customer</project.module.calculator.customer>
+        <!--声明相应的版本信息-->
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spring-cloud.version>Edgware.SR3</spring-cloud.version>
+        <spring-boot-admin-version>1.5.7</spring-boot-admin-version>
+        <spring-boot-zuul-ratelimit-version>1.7.0.RELEASE</spring-boot-zuul-ratelimit-version>
+        <feign-httpclient-version>8.18.0</feign-httpclient-version>
+    </properties>
+
+    <dependencies>
+        <!-- web 工程 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- 健康检查必须的依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- spring admin 客户端-->
+        <dependency>
+            <groupId>de.codecentric</groupId>
+            <artifactId>spring-boot-admin-starter-client</artifactId>
+            <version>${spring-boot-admin-version}</version>
+        </dependency>
+
+        <!--要依赖jolokia来将jmx的操作以http的形式暴露出来,JMX-bean management -->
+        <dependency>
+            <groupId>org.jolokia</groupId>
+            <artifactId>jolokia-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!--eureka服务注册中心地址与端口-->
+                <service.discovery.node1>192.168.149.128</service.discovery.node1>
+                <service.discovery.node2>192.168.149.129</service.discovery.node2>
+                <service.discovery.port>8761</service.discovery.port>
+                <!--各模块统一的配置变量-->
+                <config.server.compression.enabled>true</config.server.compression.enabled>
+                <config.eureka.client.healthcheck.enabled>true</config.eureka.client.healthcheck.enabled>
+                <config.eureka.server.enable-self-preservation>false</config.eureka.server.enable-self-preservation>
+                <config.management.security.enabled>false</config.management.security.enabled>
+                <config.spring.boot.admin.username>admin</config.spring.boot.admin.username>
+                <config.spring.boot.admin.password><![CDATA[keking2017@)!&]]></config.spring.boot.admin.password>
+                <config.spring.boot.admin.notify.mail.enabled>false</config.spring.boot.admin.notify.mail.enabled>
+                <config.spring.boot.admin.notify.email.to>lisong@keking.cn</config.spring.boot.admin.notify.email.to>
+                <config.spring.boot.admin.routes.endpoints>
+                    env,metrics,dump,jolokia,info,trace,refresh,heapdump
+                </config.spring.boot.admin.routes.endpoints>
+                <config.turbine.aggregator.cluster-config>default</config.turbine.aggregator.cluster-config>
+                <!--redis配置-->
+                <conifg.spring.redis.database>1</conifg.spring.redis.database>
+                <conifg.spring.redis.host>localhost</conifg.spring.redis.host>
+                <conifg.spring.redis.port>6379</conifg.spring.redis.port>
+                <conifg.spring.redis.password/>
+                <conifg.spring.redis.timeout>30000</conifg.spring.redis.timeout>
+                <conifg.spring.redis.pool.max-active>8</conifg.spring.redis.pool.max-active>
+                <conifg.spring.redis.pool.max-wait>-1</conifg.spring.redis.pool.max-wait>
+                <conifg.spring.redis.pool.max-idle>8</conifg.spring.redis.pool.max-idle>
+                <conifg.spring.redis.pool.min-idle>0</conifg.spring.redis.pool.min-idle>
+            </properties>
+        </profile>
+    </profiles>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!--由于${}方式会被maven处理,如果你pom继承了spring-boot-starter-parent,
+                Spring Boot已经将maven-resources-plugins默认的${}方式改为了@@方式，如@name@,
+                如果还想继续使用${}占位符方式，只需要在pom文件中加上下面配置即可.
+             -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>utf-8</encoding>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

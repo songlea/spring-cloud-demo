@@ -1,0 +1,53 @@
+info:
+  contact:
+    email: ${project.build.email}
+    phone: ${project.build.cellphone}
+  version: ${project.version}
+  description: ${project.description}
+
+spring:
+  application:
+    name: ${project.module.service.discovery}
+  boot:
+    admin:
+      username: ${config.spring.boot.admin.username}
+      password: ${config.spring.boot.admin.password}
+      auto-deregistration: true
+      client:
+        # Use the ip-address rather then the hostname in the guessed urls.
+        prefer-ip: true
+
+server:
+  port: ${service.discovery.port}
+  compression:
+    enabled: ${config.server.compression.enabled}
+
+eureka:
+  # eureka服务端配置
+  server:
+    # 自我保护模式（缺省为打开）当出现出现网络分区、eureka在短时间内丢失过多客户端时，会进入自我保护模式，
+    # 即一个服务长时间没有发送心跳，eureka也不会将其删除(测试时设置为false)
+    enable-self-preservation: ${config.eureka.server.enable-self-preservation}
+    # 续期时间，即扫描失效服务的间隔时间（缺省为60*1000ms）
+    eviction-interval-timer-in-ms: 60000
+  client:
+    # 开启健康检查（需要spring-boot-starter-actuator依赖）
+    healthcheck:
+      enabled: ${config.eureka.client.healthcheck.enabled}
+    # 此客户端是否获取eureka服务器注册表上的注册信息，默认为true
+    fetch-registry: true
+    # 实例是否在eureka服务器上注册自己的信息以供其他服务发现，默认为true
+    register-with-eureka: true
+    service-url:
+      # 互相注册(两个注册中心)
+      defaultZone: http://${service.discovery.node2}:${service.discovery.port}/eureka/
+  instance:
+    appname: ${project.module.service.discovery}
+    # 心跳时间与检测续约时间
+    lease-expiration-duration-in-seconds: 90
+    lease-renewal-interval-in-seconds: 30
+    prefer-ip-address: true
+
+management:
+  security:
+    enabled: ${config.management.security.enabled}

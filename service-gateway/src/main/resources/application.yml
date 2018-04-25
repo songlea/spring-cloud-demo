@@ -1,0 +1,104 @@
+info:
+  contact:
+    email: ${project.build.email}
+    phone: ${project.build.cellphone}
+  version: ${project.version}
+  description: ${project.description}
+
+server:
+  port: 8765
+  compression:
+    enabled: ${config.server.compression.enabled}
+
+spring:
+  application:
+    name: ${project.module.service.gateway}
+  boot:
+    admin:
+      username: ${config.spring.boot.admin.username}
+      password: ${config.spring.boot.admin.password}
+      auto-deregistration: true
+      client:
+        # Use the ip-address rather then the hostname in the guessed urls.
+        prefer-ip: true
+  # redis config
+  redis:
+    database: ${conifg.spring.redis.database}
+    host: ${conifg.spring.redis.host}
+    port: ${conifg.spring.redis.port}
+    password: ${conifg.spring.redis.password}
+    timeout: ${conifg.spring.redis.timeout}
+    pool:
+      max-active: ${conifg.spring.redis.pool.max-active}
+      max-wait: ${conifg.spring.redis.pool.max-wait}
+      max-idle: ${conifg.spring.redis.pool.max-idle}
+      min-idle: ${conifg.spring.redis.pool.min-idle}
+
+zuul:
+  # 设置忽略的服务，即配置后将不会被路由（但对于明确配置在路由中的，将不会被忽略）
+  # ignored-services: "*"
+  ignore-local-service: true
+  prefix: /openapi
+  host:
+    # 超时设置,默认为2s与10s
+    connect-timeout-millis: 60000
+    socket-timeout-millis: 60000
+    max-total-connections: 500
+    max-per-route-connections: 50
+  semaphore:
+    max-semaphores: 200
+  # 各个服务的路由配置
+  routes:
+    # 基于ServiceId 的映射（路由的名字等于 ServiceId 的情况下，serviceId 属性可以省略）
+    calculator-customer:
+      path: /calculator/**
+      serviceId: ${project.module.calculator.customer}
+      stripPrefix: true
+  # zuul服务网关的限流配置
+  ratelimit:
+    # 是否启用限流,default false
+    enabled: true
+    repository: REDIS
+    behind-proxy: true
+    policies:
+      # 指定的服务进行控制(这里配置的是注册到eureka的服务名)
+      calculator-customer:
+        limit: 10
+        quota: 1000
+        refresh-interval: 60
+        type:
+          - user
+          - origin
+          - url
+
+# 超时与重试机制,如果路由方式是serviceId的方式,那么ribbon的生效,如果是url的方式,则zuul.host开头的生效
+ribbon:
+  ReadTimeout: 60000
+  ConnectTimeout: 60000
+  # Max number of retries on the same server (excluding the first try)
+  MaxAutoRetries: 1
+  # Max number of next servers to retry (excluding the first server)
+  MaxAutoRetriesNextServer: 1
+
+eureka:
+  instance:
+    appname: ${project.module.service.gateway}
+    # 心跳时间，即服务续约间隔时间（缺省为30s）
+    lease-renewal-interval-in-seconds: 30
+    # 发呆时间，即服务续约到期时间（缺省为90s）
+    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+  client:
+    # 开启健康检查（需要spring-boot-starter-actuator依赖）
+    healthcheck:
+      enabled: ${config.eureka.client.healthcheck.enabled}
+    # 注册到服务注册中心
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      # 指定服务注册中心的地址
+      defaultZone: http://${service.discovery.node1}:${service.discovery.port}/eureka/,http://${service.discovery.node2}:${service.discovery.port}/eureka/
+
+management:
+  security:
+    enabled: ${config.management.security.enabled}
