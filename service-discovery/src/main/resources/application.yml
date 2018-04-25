@@ -13,6 +13,7 @@ spring:
       username: ${config.spring.boot.admin.username}
       password: ${config.spring.boot.admin.password}
       auto-deregistration: true
+       # 作为Spring Cloud Admin的客户端被管理
       client:
         # Use the ip-address rather then the hostname in the guessed urls.
         prefer-ip: true
