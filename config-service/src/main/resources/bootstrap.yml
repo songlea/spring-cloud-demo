@@ -1,0 +1,37 @@
+eureka:
+  instance:
+    appname: "@project.module.service.config@"
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+  client:
+    # 注册到服务注册中心
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: "@config.eureka.server.default.zone@"
+
+server:
+  port: @service.config.port@
+  compression:
+    enabled: true
+
+spring:
+  application:
+    name: "@project.module.service.config@"
+  cloud:
+    config:
+      # git配置(Spring Cloud Config Server)
+      server:
+        git:
+          uri: "@spring.cloud.config.server.uri@"
+          search-paths: "@spring.cloud.config.server.search.paths@"
+          default-label: "@spring.cloud.config.label@"
+          # 公有仓库不需要用户名与密码
+          # username: "@spring.cloud.config.server.username@"
+          # password: "@spring.cloud.config.server.password@"
+  rabbitmq:
+    host: "@config.spring.rabbitmq.host@"
+    port: @config.spring.rabbitmq.port@
+    username: "@config.spring.rabbitmq.username@"
+    password: "@config.spring.rabbitmq.password@"
