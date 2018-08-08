@@ -36,6 +36,7 @@ spring:
       force: true
       force-request: true
       force-response: true
+
 turbine:
   aggregator:
     cluster-config: default

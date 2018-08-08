@@ -12,6 +12,7 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
  */
 @SpringBootApplication
 @EnableZuulProxy
+// 启动断路器
 @EnableCircuitBreaker
 public class GatewayServiceApplication {
 

@@ -13,6 +13,8 @@ import org.springframework.cloud.netflix.turbine.EnableTurbine;
 @SpringBootApplication
 // 此注解已经包含@EnableEurekaClient功能
 @EnableTurbine
+// 注：当使用Hystrix Board来监控Spring Cloud Zuul构建的API网关时,Thread Pool信息会一直处于Loading状态;
+// 这是由于Zuul默认会使用信号量来实现隔离,只有通过Hystrix配置把隔离机制改成为线程池的方式才能够得以展示.
 @EnableHystrixDashboard
 public class MonitorServiceApplication {
 
