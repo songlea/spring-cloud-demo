@@ -103,14 +103,6 @@
         </dependency>
         -->
 
-        <!--监控界面,单独服务模块中不集成,后期可以单独写个模块作为集群的监控-->
-        <!--
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
-        </dependency>
-        -->
-
         <!--服务端的负载均衡
             注意：zuul包含有hystrix和ribbon，基于http通讯的，可以直接代理服务就行；
             在它和服务间增加feign只会增加通讯消耗，feign在业务层服务互相调用的时候用，可以仿rpc通讯-->

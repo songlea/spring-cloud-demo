@@ -71,7 +71,7 @@ zuul:
     policy-list:
       # 各个服务的限流配置(业务层服务:business-service)
       business-service:
-        - limit: 20
+        - limit: 200
           quota: 1000
           refresh-interval: 30
           type:
@@ -158,9 +158,8 @@ hystrix:
         # 用来设置断路器强制进入"关闭"状态,会接收所有请求
         # forceClosed: false
 
-# 不需要Spring Cloud Bus的刷新
-# management:
-  # endpoints:
-    # web:
-      # exposure:
-        # include: [info,health,refresh,bus-refresh]
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [info,health,hystrix.stream]
