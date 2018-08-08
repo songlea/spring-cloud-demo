@@ -19,7 +19,7 @@
             <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
         </dependency>
 
-        <!-- 汇聚hystrix-dashboard的监控数据(集群) -->
+        <!-- 汇聚hystrix的监控数据(集群) -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-turbine</artifactId>
