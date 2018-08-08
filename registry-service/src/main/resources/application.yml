@@ -1,0 +1,69 @@
+info:
+  contact:
+    author: "@project.build.info.author@"
+    email: "@project.build.info.email@"
+    github: "@project.build.info.github@"
+  application: "@project.module.service.registry@"
+  version: "@project.version@"
+  description: "@project.description@"
+
+server:
+  port: @service.registry.port@
+  compression:
+    enabled: true
+
+spring:
+  application:
+    name: "@project.module.service.registry@"
+  http:
+    encoding:
+      # 强制请求与响应使用UTF-8编码,如同在web.xml中org.springframework.web.filter.CharacterEncodingFilter过滤器
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+  # basic密码登录
+  security:
+    user:
+      name: "@config.eureka.server.security.user.name@"
+      password: "@config.eureka.server.security.user.password@"
+
+eureka:
+  server:
+    # eureka server清理无效节点的时间间隔,默认60000毫秒
+    eviction-interval-timer-in-ms: 60000
+    enable-replicated-request-compression: true
+    # 是否开启自我保护,默认为true
+    enable-self-preservation: false
+  client:
+    # 以下false表示不将自己注册到注册中心
+    fetch-registry: false
+    register-with-eureka: false
+    service-url:
+      # 如果有多台注册服务端可以互相注册防止单点故障(如http://username:password${service.discovery.node2@":"@service.discovery.port@"/eureka/)
+      defaultZone: "@config.eureka.server.default.zone@"
+    # 表示eureka client间隔多久去拉取服务注册信息,默认为30秒,对于api-gateway如果要迅速获取服务注册状态,可以缩小该值,比如5秒
+    registry-fetch-interval-seconds: 30
+  instance:
+    appname: "@project.module.service.registry@"
+    prefer-ip-address: true
+    # 表示eureka client发送心跳给server端的频率
+    lease-renewal-interval-in-seconds: 30
+    # 表示eureka server至上一次收到client的心跳之后,等待下一次心跳的超时时间,在这个时间内若没收到下一次心跳,则将移除该instance
+    lease-expiration-duration-in-seconds: 90
+
+# actuator监控时暴露的接口配置(由于默认下/health与/info不需要鉴权,其他的需要鉴权,见README.md)
+# management:
+  # endpoints:
+    # web:
+      # exposure:
+        # include: "*"
+      # cors:
+        # allow-credentials: false
+        # allowed-methods: "*"
+        # allowed-origins: "*"
+  # endpoint:
+    # health:
+      # show-details: WHEN_AUTHORIZED
+      # cache:
+        # time-to-live: 1000ms
