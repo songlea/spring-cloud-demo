@@ -27,6 +27,7 @@
         <module>config-service</module>
         <!-- 其他业务层模块... -->
         <module>business-service</module>
+        <module>monitor-service</module>
     </modules>
 
     <parent>
@@ -47,6 +48,7 @@
         <project.module.service.gateway>gateway-service</project.module.service.gateway>
         <project.module.service.config>config-service</project.module.service.config>
         <project.module.service.business>business-service</project.module.service.business>
+        <project.module.service.monitor>monitor-service</project.module.service.monitor>
         <project.build.info.author>Song Lea</project.build.info.author>
         <project.build.info.email>lsong329483@gmail.com</project.build.info.email>
         <project.build.info.github>https://github.com/SongLea</project.build.info.github>
@@ -133,6 +135,7 @@
                 <service.gateway.port>8762</service.gateway.port>
                 <service.config.port>8763</service.config.port>
                 <service.business.port>8764</service.business.port>
+                <service.monitor.port>8765</service.monitor.port>
 
                 <!-- eureka客户端连接注册中心的配置 -->
                 <config.eureka.server.security.user.name>admin</config.eureka.server.security.user.name>
