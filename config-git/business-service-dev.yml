@@ -1,0 +1,3 @@
+bussiness-service:
+  demo:
+    msg: "Hello World!"
