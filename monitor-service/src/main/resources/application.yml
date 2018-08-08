@@ -1,0 +1,51 @@
+info:
+  contact:
+    author: "@project.build.info.author@"
+    email: "@project.build.info.email@"
+    github: "@project.build.info.github@"
+  application: "@project.module.service.registry@"
+  version: "@project.version@"
+  description: "@project.description@"
+
+eureka:
+  instance:
+    appname: "@project.module.service.monitor@"
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+  # 注册到注册中心
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: "@config.eureka.server.default.zone@"
+    # 表示eureka client间隔多久去拉取服务注册信息,默认30s
+    registry-fetch-interval-seconds: 30
+
+server:
+  port: @service.monitor.port@
+  compression:
+    enabled: true
+
+spring:
+  application:
+    name: "@project.module.service.monitor@"
+  http:
+    encoding:
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+turbine:
+  aggregator:
+    cluster-config: default
+  cluster-name-expression: new String("default")
+  # 需要监控的服务id
+  app-config: "@project.module.service.gateway@"
+
+# 不需要Spring Cloud Bus的刷新
+# management:
+  # endpoints:
+    # web:
+      # exposure:
+        # include: [info,health,refresh,bus-refresh]
