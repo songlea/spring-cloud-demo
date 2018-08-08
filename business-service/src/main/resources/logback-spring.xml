@@ -4,13 +4,12 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <!-- 动态修改日志级别 -->
     <jmxConfigurator/>
 
     <!--添加自定义的日志文件输出-->
     <appender name="dailyRollingFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/admin-monitor/admin-monitor-%d{yyyy-MM-dd}.log</FileNamePattern>
+            <FileNamePattern>logs/business-service/business-%d{yyyy-MM-dd}.log</FileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
