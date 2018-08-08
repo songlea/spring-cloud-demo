@@ -1,0 +1,39 @@
+eureka:
+  instance:
+    appname: "@project.module.service.gateway@"
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+  # 注册到注册中心
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: "@config.eureka.server.default.zone@"
+    # 表示eureka client间隔多久去拉取服务注册信息,默认30s
+    registry-fetch-interval-seconds: 10
+
+server:
+  port: @service.gateway.port@
+  compression:
+    enabled: true
+
+spring:
+  application:
+    name: "@project.module.service.gateway@"
+  # 该模块未依赖Spring Cloud Config Client与Spring Cloud BUS
+  # cloud:
+    # config:
+      # discovery:
+        # enabled: true
+        # service-id: "@project.module.service.config@"
+      # username: "@config.eureka.server.security.user.name@"
+      # password: "@config.eureka.server.security.user.password@"
+      # fail-fast: true
+      # profile: "@spring.cloud.config.profile@"
+      # label: master
+  # rabbitmq:
+    # host: "@config.spring.rabbitmq.host@"
+    # port: @config.spring.rabbitmq.port@
+    # username: "@config.spring.rabbitmq.username@"
+    # password: "@config.spring.rabbitmq.password@"

@@ -1,0 +1,166 @@
+info:
+  contact:
+    author: "@project.build.info.author@"
+    email: "@project.build.info.email@"
+    github: "@project.build.info.github@"
+  application: "@project.module.service.registry@"
+  version: "@project.version@"
+  description: "@project.description@"
+
+spring:
+  http:
+    encoding:
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+  redis:
+    database: @config.spring.redis.database@
+    host: "@config.spring.redis.host@"
+    port: @config.spring.redis.port@
+    password: "@config.spring.redis.password@"
+    timeout: 30000ms
+  cloud:
+    loadbalancer:
+      retry:
+        # 启用重试机制
+        enabled: true
+
+# 服务网关配置
+zuul:
+  # 不要重试
+  retryable: false
+  # ignored-services: "*"
+  ignore-local-service: true
+  # 所有的请求前缀
+  prefix: /gateway
+  host:
+    connect-timeout-millis: 2000
+    max-per-route-connections: 20
+    max-total-connections: 200
+    socket-timeout-millis: 10000
+    connection-request-timeout-millis: -1
+  semaphore:
+    max-semaphores: 100
+  routes:
+    business-service:
+      path: /business-service/**
+      serviceId: "@project.module.service.business@"
+      stripPrefix: true
+      # 路由到这个服务的请求是否重试,局部配置优先级更高
+      # retryable: true
+  ratelimit:
+    enabled: true
+    repository: REDIS
+    behind-proxy: true
+    # optional - will apply unless specific policy exists(以下配置含义:60秒内允许10个访问,并且要求总请求时间小于1000秒)
+    default-policy-list:
+      # optional - request number limit per refresh interval window.每个刷新时间窗口对应的请求数量限制
+      - limit: 10
+        # optional - request time limit per refresh interval window (in seconds).每个刷新时间窗口对应的请求时间限制
+        quota: 1000
+        # default value (in seconds)刷新时间窗口的时间
+        refresh-interval: 60
+        type:
+          # user是通过授权用户进行区分,也包括匿名用户(anonymous)
+          - user
+          # origin是通过客户端IP地址区分,即请求来源
+          - origin
+          # url类型的限流就是通过请求url区分
+          - url
+    policy-list:
+      # 各个服务的限流配置(业务层服务:business-service)
+      business-service:
+        - limit: 20
+          quota: 1000
+          refresh-interval: 30
+          type:
+            - user
+            - origin
+            - url
+
+# 各个服务的负载均衡配置
+proxy-service:
+  ribbon:
+    # 数据读取与Socket的连接超时时间(ReadTimeout默认5s,ConnectTimeout默认2s)
+    # 已经建立连接,并开始读取服务端资源,如果到了指定的时间,没有可能的数据被客户端读取,则报异常
+    ReadTimeout: 15000
+    # 用来建立连接的时间,如果到了指定的时间,还没建立连接,则报异常
+    ConnectTimeout: 5000
+    # 服务实例的最大重试次数(不包括第一次),默认为1
+    MaxAutoRetries: 0
+    # 下个服务实例的最大重试次数(不包括第一次),默认为1
+    MaxAutoRetriesNextServer: 1
+    # 使用的负载规则算法
+    # WeightedResponseTimeRule：根据响应时间分配一个weight,响应时间越长,weight越小,被选中的可能性越低;
+    # BestAvailableRule：选择一个最小的并发请求的server;
+    # AvailabilityFilteringRule：过滤掉那些因为一直连接失败的被标记为circuit tripped的后端server,并过滤掉那些高并发的的后端server（active connections 超过配置的阈值）;
+    # RetryRule：对选定的负载均衡策略机上重试机制;
+    # RoundRobinRule：RoundRobin方式轮询选择server;
+    # RandomRule：随机选择一个server;
+    # ZoneAvoidanceRule：复合判断server所在区域的性能和server的可用性选择server.
+    # NFLoadBalancerRuleClassName: com.netflix.loadbalancer.WeightedResponseTimeRule
+    # 该服务的所有请求都触发重试,默认为true
+    OkToRetryOnAllOperations: false
+    # 刷新服务列表的周期,默认2000
+    ServerListRefreshInterval: 2000
+    EnablePrimeConnections: true
+
+# 服务熔断器配置
+hystrix:
+  threadpool:
+    default:
+      # 线程池核心线程数,默认为10
+      coreSize: 10
+      # 最大排队长度,默认-1,使用SynchronousQueue
+      maxQueueSize: -1
+  command:
+    default:
+      execution:
+        isolation:
+          # 用来设置执行的隔离策略
+          # THREAD：通过线程池隔离的策略,在独立线程上执行,并且他的并发限制受线程池中线程数量的限制（默认）;
+          # SEMAPHONE:通过信号量隔离的策略,在调用线程上执行,并且他的并发限制受信号量计数的限制.
+          strategy: THREAD
+          thread:
+            # 用来配置HystrixCommand执行的超时时间,默认值1000(ms),超出此时间配置,Hystrix会将该执行命令为TIMEOUT并进入服务降级处理逻辑
+            # 该值必须大于服务重试的超时时间,重试机制才能生效
+            # Hystrix默认的超时时间是1秒,如果超过这个时间尚未响应,将会进入fallback代码.而首次请求往往会比较慢（因为Spring的懒加载机制,要实例化一些类）,这个响应时间可能就大于1秒了
+            # ribbonTimeout = (ribbonReadTimeout + ribbonConnectTimeout) * (maxAutoRetries + 1) * (maxAutoRetriesNextServer + 1)
+            timeoutInMilliseconds: 30000
+            # 用来配置当HystrixCommand执行超时的时候,是否需要将他中断,默认值true
+            interruptOnTimeout: true
+        # 用来配置HystrixCommand执行是否启动超时时间,默认值true,如果设置false则execution.isolation.thread.timeoutInMilliseconds属性的配置将不起作用
+        timeout: true
+        # 当隔离策略使用信号量时,该属性用来配置信号量的大小,当最大并发请求数达到该设置值,后续的请求将会被拒绝
+        # semaphore:
+          # maxConcurrentRequests: 100
+      fallback:
+        # 设置服务降级策略是否启用,默认值true,如果设置为false,当请求失败或拒绝发生时,将不会调用HystrixCommand.getFallback()来执行服务降级逻辑
+        enabled: true
+      requestCache:
+        # 该属性用来配置是否开启请求缓存
+        enabled: true
+      requestLog:
+        # 用来设置HystrixCommand的执行和事件是否打印日志到HystrixRequestLog中,默认值 true
+        enabled: true
+      circuitBreaker:
+        # 用来确定当服务请求命令失败时,是否使用断路器来跟踪其健康指标和熔断请求,默认值true
+        enabled: true
+        # 用来设置在滚动时间窗中,断路器的最小请求数
+        requestVolumeThreshold: 20
+        # 该属性用来设置当断路器打开之后的休眠时间窗,默认值 5000 毫秒.休眠时间窗结束之后,会将断路器设置为"半开"状态,尝试熔断的请求命令,如果依然失败就将断路器继续设置为"打开"状态,如果成功就设置为"关闭"状态
+        sleepWindowInMilliseconds: 5000
+        # 用来设置断路器打开的错误百分比条件,例如默认值为50的情况下,表示在滚动时间窗中,在请求数量超过circuitBreaker.requestVolumeThreshold阈值的请求下,如果错误请求数的百分比超过50,就把断路器设置为"打开"状态,否则就设置为"关闭"状态
+        errorThresholdPercentage: 50
+        # 用来设置断路器强制进入"打开"状态,会拒绝所有请求,该属性优先于 circuitBreaker.forceClosed
+        # forceOpen: false
+        # 用来设置断路器强制进入"关闭"状态,会接收所有请求
+        # forceClosed: false
+
+# 不需要Spring Cloud Bus的刷新
+# management:
+  # endpoints:
+    # web:
+      # exposure:
+        # include: [info,health,refresh,bus-refresh]
