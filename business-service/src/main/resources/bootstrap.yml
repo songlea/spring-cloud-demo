@@ -24,8 +24,9 @@ spring:
       discovery:
         enabled: true
         service-id: "@project.module.service.config@"
-      username: "@config.eureka.server.security.user.name@"
-      password: "@config.eureka.server.security.user.password@"
+      # 连接远程服务的用户名与密码(Http Basic)
+      # username: "@config.eureka.server.security.user.name@"
+      # password: "@config.eureka.server.security.user.password@"
       fail-fast: true
       profile: "@spring.cloud.config.profile@"
       label: "@spring.cloud.config.label@"
