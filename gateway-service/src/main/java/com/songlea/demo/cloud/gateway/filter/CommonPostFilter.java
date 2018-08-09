@@ -31,7 +31,8 @@ public class CommonPostFilter extends ZuulFilter {
 
     @Override
     public boolean shouldFilter() {
-        return true;
+        RequestContext ctx = RequestContext.getCurrentContext();
+        return ctx.get("IS_OVER") == null;
     }
 
     @Override
