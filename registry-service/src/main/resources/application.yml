@@ -32,13 +32,14 @@ eureka:
   server:
     # eureka server清理无效节点的时间间隔,默认60000毫秒
     eviction-interval-timer-in-ms: 60000
-    enable-replicated-request-compression: true
+    # 不开启请求复制压缩,否则一直出现 Cannot parse request body
+    enable-replicated-request-compression: false
     # 是否开启自我保护,默认为true
     enable-self-preservation: false
   client:
     # 以下false表示不将自己注册到注册中心
-    fetch-registry: false
-    register-with-eureka: false
+    # fetch-registry: true
+    # register-with-eureka: true
     service-url:
       # 如果有多台注册服务端可以互相注册防止单点故障(如http://username:password${service.discovery.node2@":"@service.discovery.port@"/eureka/)
       defaultZone: "@config.eureka.server.default.zone@"
