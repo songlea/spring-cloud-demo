@@ -9,26 +9,6 @@ import java.sql.Timestamp;
  */
 public class ErrorResponseData {
 
-    // 异常处理
-    public enum ExceptionEnum {
-        EXCEPTION_SYSTEM_BUSY("系统正忙，请稍后重试！"),
-        EXCEPTION_METHOD_NOT_SUPPORTED("请求的方式不对(POST/GET/PUT/DELETE...)！"),
-        EXCEPTION_LACK_PARAMETER("请求的参数不完整！"),
-        EXCEPTION_ARGUMENT_TYPE_MISMATCH("请求的参数格式不匹配！"),
-        EXCEPTION_MEDIA_TYPE_NOT_ACCEPTABLE("请求的MINE类型不接受！"),
-        EXCEPTION_MEDIA_TYPE_NOT_SUPPORTED("请求的MIME类型不支持！");
-
-        private String message;
-
-        ExceptionEnum(String message) {
-            this.message = message;
-        }
-
-        public ErrorResponseData getResult(String path) {
-            return new ErrorResponseData(path, this.message);
-        }
-    }
-
     private String timestamp = new Timestamp(System.currentTimeMillis()).toString();
     private int status = 500;
     private String error = "Internal Server Error";
@@ -36,7 +16,7 @@ public class ErrorResponseData {
     private String path;
 
 
-    private ErrorResponseData(String path, String message) {
+    public ErrorResponseData(String path, String message) {
         this.path = path;
         this.message = message;
     }
