@@ -36,3 +36,9 @@ spring:
     port: @config.spring.rabbitmq.port@
     username: "@config.spring.rabbitmq.username@"
     password: "@config.spring.rabbitmq.password@"
+  # 国际化
+  messages:
+    basename: i18n/message
+    # cache-duration:
+
+

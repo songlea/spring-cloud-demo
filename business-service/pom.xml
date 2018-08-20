@@ -31,6 +31,14 @@
             <artifactId>spring-cloud-starter-bus-amqp</artifactId>
         </dependency>
 
+        <!-- 一个声明的web服务客户端,这便得编写web服务客户端更容易 -->
+        <!--
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        -->
+
         <!--工具类-->
         <dependency>
             <groupId>commons-io</groupId>
