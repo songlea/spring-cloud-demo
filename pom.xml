@@ -57,7 +57,7 @@
         <spring.cloud.config.server.uri>https://github.com/SongLea/spring-cloud-demo.git
         </spring.cloud.config.server.uri>
         <!-- 配置中心在git上的搜索路径(哪个文件夹下) -->
-        <spring.cloud.config.server.search.paths>config-git</spring.cloud.config.server.search.paths>
+        <spring.cloud.config.server.search.paths>config-repository</spring.cloud.config.server.search.paths>
         <!-- 此处为公有库,不需要密码
         <spring.cloud.config.server.username>your github username</spring.cloud.config.server.username>
         <spring.cloud.config.server.password>your github password</spring.cloud.config.server.password>
@@ -120,7 +120,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <!-- dev环境下使用dev后缀的配置中心文件,如config-git/business-service-dev.yml -->
+                <!-- dev环境下使用dev后缀的配置中心文件,如config-repository/business-service-dev.yml -->
                 <spring.cloud.config.profile>dev</spring.cloud.config.profile>
                 <spring.cloud.config.label>master</spring.cloud.config.label>
 

@@ -22,7 +22,7 @@
     * spring-cloud-starter-netflix-eureka-client：Eureka客户端
     * spring-cloud-starter-config：Spring Cloud Config客户端
     * spring-cloud-starter-bus-amqp：用于@Value成员变量的动态更新
-* config-git 存放Spring Cloud Config的配置文件,HTTP服务以下形式获取资源：
+* config-repository 存放Spring Cloud Config的配置文件,HTTP服务以下形式获取资源：
     ~~~
     /{application}/{profile}[/{label}]
     /{application}-{profile}.yml
