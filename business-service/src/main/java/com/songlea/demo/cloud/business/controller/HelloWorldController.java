@@ -41,6 +41,7 @@ public class HelloWorldController {
     @RequestMapping(value = "/i18n/test", method = RequestMethod.GET)
     public String changeSessionLanguage(
             @RequestHeader(value = "accept-language", required = false) String acceptLanguage) {
+        // 默认的区域解析器之AcceptHeaderLocaleResolver不能动态设置Local,而通过accept-language请求头来解析区域的
         LOGGER.info("请求头【accept-language:{}】", acceptLanguage);
         /*
         // 会话区域解析器之SessionLocaleResolver或Cookie区域解析器之CookieLocaleResolver可以动态设置Local
@@ -48,7 +49,6 @@ public class HelloWorldController {
         if (language != null && localeResolver != null) {
             switch (language) {
                 case "zh":
-                    // 默认的区域解析器之AcceptHeaderLocaleResolver不能动态设置Local,而通过accept-language请求头来解析区域的
                     localeResolver.setLocale(request, response, new Locale("zh", "CN"));
                     break;
                 case "en":

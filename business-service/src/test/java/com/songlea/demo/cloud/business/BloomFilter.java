@@ -1,4 +1,4 @@
-package com.songlea.demo.cloud.gateway.util;
+package com.songlea.demo.cloud.business;
 
 import java.io.*;
 import java.util.BitSet;
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Song Lea
  */
-public class BloomFilterTest implements Serializable {
+public class BloomFilter implements Serializable {
 
     private static final long serialVersionUID = -5221305273707291280L;
 
@@ -25,7 +25,7 @@ public class BloomFilterTest implements Serializable {
      *
      * @param dataCount 预期处理的数据规模，如预期用于处理1百万数据的查重，这里则填写1000000
      */
-    public BloomFilterTest(int dataCount) {
+    public BloomFilter(int dataCount) {
         this(MisjudgmentRate.MIDDLE, dataCount, null);
     }
 
@@ -36,7 +36,7 @@ public class BloomFilterTest implements Serializable {
      *                      当过滤器使用率达到100%时，则无论传入什么数据，都会认为在数据已经存在了
      *                      当希望过滤器使用率达到80%时自动清空重新使用，则传入0.8
      */
-    public BloomFilterTest(MisjudgmentRate rate, int dataCount, Double autoClearRate) {
+    public BloomFilter(MisjudgmentRate rate, int dataCount, Double autoClearRate) {
         long bitSize = rate.seeds.length * dataCount;
         if (bitSize < 0 || bitSize > Integer.MAX_VALUE) {
             throw new RuntimeException("位数太大溢出了，请降低误判率或者降低数据大小");
@@ -74,13 +74,13 @@ public class BloomFilterTest implements Serializable {
     public boolean addIfNotExist(String data) {
         checkNeedClear();
 
-        int[] indexs = new int[seeds.length];
+        int[] indexes = new int[seeds.length];
         // 先假定存在
         boolean exist = true;
         int index;
 
         for (int i = 0; i < seeds.length; i++) {
-            indexs[i] = index = hash(data, seeds[i]);
+            indexes[i] = index = hash(data, seeds[i]);
 
             if (exist) {
                 if (!notebook.get(index)) {
@@ -88,7 +88,7 @@ public class BloomFilterTest implements Serializable {
                     exist = false;
                     // 补充之前的信息
                     for (int j = 0; j <= i; j++) {
-                        setTrue(indexs[j]);
+                        setTrue(indexes[j]);
                     }
                 }
             } else {
@@ -141,9 +141,9 @@ public class BloomFilterTest implements Serializable {
         }
     }
 
-    public static BloomFilterTest readFilterFromFile(String path) {
+    public static BloomFilter readFilterFromFile(String path) {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path))) {
-            return (BloomFilterTest) ois.readObject();
+            return (BloomFilter) ois.readObject();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -207,16 +207,16 @@ public class BloomFilterTest implements Serializable {
     }
 
     public static void main(String[] args) {
-        BloomFilterTest filterTest = new BloomFilterTest(7);
+        BloomFilter filterTest = new BloomFilter(10);
         System.out.println(filterTest.addIfNotExist("1111111111111"));
         System.out.println(filterTest.addIfNotExist("2222222222222222"));
         System.out.println(filterTest.addIfNotExist("3333333333333333"));
         System.out.println(filterTest.addIfNotExist("444444444444444"));
         System.out.println(filterTest.addIfNotExist("5555555555555"));
         System.out.println(filterTest.addIfNotExist("6666666666666"));
-        System.out.println(filterTest.addIfNotExist("11111111111112"));
-        filterTest.saveFilterToFile("G:\\11.obj");
-        filterTest = readFilterFromFile("G:\\11.obj");
+        System.out.println(filterTest.addIfNotExist("6666666666666"));
+        filterTest.saveFilterToFile("D:\\11.obj");
+        filterTest = readFilterFromFile("D:\\11.obj");
         System.out.println(filterTest.getUseRate());
         System.out.println(filterTest.addIfNotExist("1111111111111"));
     }
