@@ -1,0 +1,36 @@
+info:
+  contact:
+    author: "@project.build.info.author@"
+    email: "@project.build.info.email@"
+    github: "@project.build.info.github@"
+  application: "@project.module.service.registry@"
+  version: "@project.version@"
+  description: "@project.description@"
+
+spring:
+  http:
+    encoding:
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    url: "@config.spring.datasource.url@"
+    username: "@config.spring.datasource.username@"
+    password: "@config.spring.datasource.password@"
+  redis:
+    database: @config.spring.redis.database@
+    host: "@config.spring.redis.host@"
+    port: @config.spring.redis.port@
+    password: "@config.spring.redis.password@"
+    timeout: 30000ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # refresh可以打开,否则无法POST去更新:http://localhost:8763/actuator/refresh(单节点)
+        # bus-refresh必须打开,否则无法POST去更新:http://localhost:8765/actuator/bus-refresh(新版本)
+        include: [info,health,bus-refresh]

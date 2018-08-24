@@ -28,6 +28,7 @@
         <!-- 其他业务层模块... -->
         <module>business-service</module>
         <module>monitor-service</module>
+        <module>oauth2-service</module>
     </modules>
 
     <parent>
@@ -49,6 +50,7 @@
         <project.module.service.config>config-service</project.module.service.config>
         <project.module.service.business>business-service</project.module.service.business>
         <project.module.service.monitor>monitor-service</project.module.service.monitor>
+        <project.module.service.oauth2>oauth2-service</project.module.service.oauth2>
         <project.build.info.author>Song Lea</project.build.info.author>
         <project.build.info.email>lsong329483@gmail.com</project.build.info.email>
         <project.build.info.github>https://github.com/SongLea</project.build.info.github>
@@ -131,6 +133,7 @@
                 <service.config.port>8763</service.config.port>
                 <service.business.port>8764</service.business.port>
                 <service.monitor.port>8765</service.monitor.port>
+                <service.oauth2.port>8766</service.oauth2.port>
 
                 <!-- eureka客户端连接注册中心的配置 -->
                 <config.eureka.server.security.user.name>admin</config.eureka.server.security.user.name>
@@ -152,13 +155,11 @@
                 <config.spring.redis.password/>
 
                 <!-- Mysql数据库连接配置 -->
-                <!--
                 <config.spring.datasource.url>
-                    <![CDATA[jdbc:mysql://localhost:3306/test?zeroDateTimeBehavior=convertToNull&amp;autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
+                    <![CDATA[jdbc:mysql://192.168.3.113:3306/oauth2?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </config.spring.datasource.url>
-                <config.spring.datasource.username>test</config.spring.datasource.username>
-                <config.spring.datasource.password>test2018</config.spring.datasource.password>
-                 -->
+                <config.spring.datasource.username>root</config.spring.datasource.username>
+                <config.spring.datasource.password>root</config.spring.datasource.password>
             </properties>
         </profile>
     </profiles>
