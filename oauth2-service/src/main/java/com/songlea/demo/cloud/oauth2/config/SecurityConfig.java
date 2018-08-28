@@ -11,15 +11,21 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.web.cors.CorsUtils;
+
+import javax.annotation.Resource;
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 @Order(1)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Resource
+    private DataSource dataSource; // 数据库数据源
 
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
     @Override
@@ -30,16 +36,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     @Override
     protected UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("user_1").password("123456").authorities("USER").build());
-        manager.createUser(User.withUsername("user_2").password("123456").authorities("USER").build());
-        return manager;
+        JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
+        jdbcUserDetailsManager.createUser(User.withUsername("user_1").password(passwordEncoder().encode("123456")).authorities("USER").build());
+        jdbcUserDetailsManager.createUser(User.withUsername("user_2").password(passwordEncoder().encode("123456")).authorities("ADMIN").build());
+        return jdbcUserDetailsManager;
     }
 
     // PasswordEncoder:密码加密接口,推荐使用实现类BCryptPasswordEncoder、SCryptPasswordEncoder与Pbkdf2PasswordEncoder
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Override
