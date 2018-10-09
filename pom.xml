@@ -28,7 +28,7 @@
         <!-- 其他业务层模块... -->
         <module>business-service</module>
         <module>monitor-service</module>
-        <module>oauth2-service</module>
+        <module>security-service</module>
     </modules>
 
     <parent>
@@ -50,7 +50,7 @@
         <project.module.service.config>config-service</project.module.service.config>
         <project.module.service.business>business-service</project.module.service.business>
         <project.module.service.monitor>monitor-service</project.module.service.monitor>
-        <project.module.service.oauth2>oauth2-service</project.module.service.oauth2>
+        <project.module.service.security>security-service</project.module.service.security>
         <project.build.info.author>Song Lea</project.build.info.author>
         <project.build.info.email>lsong329483@gmail.com</project.build.info.email>
         <project.build.info.github>https://github.com/SongLea</project.build.info.github>
@@ -80,6 +80,10 @@
         <commons.codec.version>1.11</commons.codec.version>
         <alibaba.fastjson.version>1.2.49</alibaba.fastjson.version>
         <alibaba.druid.version>1.1.10</alibaba.druid.version>
+        <mybatis.spring.boot.starter.version>1.3.2</mybatis.spring.boot.starter.version>
+        <mapper.spring.boot.starter.version>2.0.4</mapper.spring.boot.starter.version>
+        <pagehelper.spring.boot.starter.version>1.2.7</pagehelper.spring.boot.starter.version>
+        <mybatis.generator.maven.plugin.version>1.3.7</mybatis.generator.maven.plugin.version>
     </properties>
 
     <dependencies>
@@ -140,7 +144,7 @@
                 <service.config.port>8763</service.config.port>
                 <service.business.port>8764</service.business.port>
                 <service.monitor.port>8765</service.monitor.port>
-                <service.oauth2.port>8766</service.oauth2.port>
+                <service.security.port>8766</service.security.port>
 
                 <!-- eureka客户端连接注册中心的配置 -->
                 <config.eureka.server.security.user.name>admin</config.eureka.server.security.user.name>
@@ -156,7 +160,8 @@
                 <config.spring.rabbitmq.password>guest</config.spring.rabbitmq.password>
 
                 <!-- Redis连接配置 -->
-                <config.spring.redis.database>1</config.spring.redis.database>
+                <config.spring.redis.database.gateway>1</config.spring.redis.database.gateway>
+                <config.spring.redis.database.security>2</config.spring.redis.database.security>
                 <config.spring.redis.host>localhost</config.spring.redis.host>
                 <config.spring.redis.port>6379</config.spring.redis.port>
                 <config.spring.redis.password/>

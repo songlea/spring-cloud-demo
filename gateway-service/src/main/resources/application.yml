@@ -15,7 +15,7 @@ spring:
       force-request: true
       force-response: true
   redis:
-    database: @config.spring.redis.database@
+    database: @config.spring.redis.database.gateway@
     host: "@config.spring.redis.host@"
     port: @config.spring.redis.port@
     password: "@config.spring.redis.password@"

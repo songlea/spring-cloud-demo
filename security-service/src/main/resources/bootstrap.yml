@@ -1,0 +1,42 @@
+eureka:
+  instance:
+    appname: "@project.module.service.security@"
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    prefer-ip-address: true
+  client:
+    # 注册到注册中心
+    fetch-registry: true
+    register-with-eureka: true
+    serviceUrl:
+      defaultZone: "@config.eureka.server.default.zone@"
+
+server:
+  port: @service.security.port@
+  compression:
+    enabled: true
+
+spring:
+  application:
+    name: "@project.module.service.security@"
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: "@project.module.service.config@"
+      # 连接远程服务的用户名与密码(Http Basic)
+      # username: "@config.eureka.server.security.user.name@"
+      # password: "@config.eureka.server.security.user.password@"
+      fail-fast: true
+      profile: "@spring.cloud.config.profile@"
+      label: "@spring.cloud.config.label@"
+  # 用于更新配置
+  rabbitmq:
+    host: "@config.spring.rabbitmq.host@"
+    port: @config.spring.rabbitmq.port@
+    username: "@config.spring.rabbitmq.username@"
+    password: "@config.spring.rabbitmq.password@"
+  security:
+    user:
+      name: "@config.eureka.server.security.user.name@"
+      password: "@config.eureka.server.security.user.password@"

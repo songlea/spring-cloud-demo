@@ -1,0 +1,48 @@
+info:
+  contact:
+    author: "@project.build.info.author@"
+    email: "@project.build.info.email@"
+    github: "@project.build.info.github@"
+  application: "@project.module.service.registry@"
+  version: "@project.version@"
+  description: "@project.description@"
+
+spring:
+  http:
+    encoding:
+      enabled: true
+      force: true
+      force-request: true
+      force-response: true
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+    url: "@config.spring.datasource.url@"
+    username: "@config.spring.datasource.username@"
+    password: "@config.spring.datasource.password@"
+  redis:
+    database: @config.spring.redis.database.security@
+    host: "@config.spring.redis.host@"
+    port: @config.spring.redis.port@
+    password: "@config.spring.redis.password@"
+    timeout: 30000ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # refresh可以打开,否则无法POST去更新:http://localhost:8763/actuator/refresh(单节点)
+        # bus-refresh必须打开,否则无法POST去更新:http://localhost:8765/actuator/bus-refresh(新版本)
+        include: [info,health,bus-refresh]
+
+mybatis:
+  type-aliases-package: com.songlea.demo.cloud.security.model.db
+  mapper-locations: classpath:mapper/mysql/*.xml
+  check-config-location: true
+
+pagehelper:
+  helper-dialect: mysql
+  # 当该参数设置为 true 时,pageNum<=0 时会查询第一页,pageNum>pages（超过总数时）,会查询最后一页,默认false 时,直接根据参数进行查询
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
