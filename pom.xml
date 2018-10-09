@@ -168,10 +168,10 @@
 
                 <!-- Mysql数据库连接配置 -->
                 <config.spring.datasource.url>
-                    <![CDATA[jdbc:mysql://192.168.3.113:3306/oauth2?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
+                    <![CDATA[jdbc:mysql://localhost:3306/oauth2?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf-8]]>
                 </config.spring.datasource.url>
                 <config.spring.datasource.username>root</config.spring.datasource.username>
-                <config.spring.datasource.password>root</config.spring.datasource.password>
+                <config.spring.datasource.password>root2018</config.spring.datasource.password>
             </properties>
         </profile>
     </profiles>
