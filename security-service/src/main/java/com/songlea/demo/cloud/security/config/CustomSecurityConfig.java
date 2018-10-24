@@ -1,12 +1,17 @@
 package com.songlea.demo.cloud.security.config;
 
+import com.alibaba.fastjson.JSON;
 import com.songlea.demo.cloud.security.filter.CustomInvocationSecurityMetadataSource;
+import com.songlea.demo.cloud.security.model.dto.ResultData;
 import com.songlea.demo.cloud.security.service.PermissionService;
 import com.songlea.demo.cloud.security.userdetails.CustomUnanimousBased;
 import com.songlea.demo.cloud.security.userdetails.CustomUserDetailsService;
 import com.songlea.demo.cloud.security.userdetails.CustomUserRoleVoter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.AuthenticatedVoter;
@@ -32,13 +37,24 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+// prePostEnabled:确定 Spring Security前置注解[@PreAuthorize,@PostAuthorize,..] 是否应该启用
+// securedEnabled:确定 Spring Security 安全注解[@Secured] 是否应该启用
+// jsr250Enabled:确定 JSR-250注解[@RolesAllowed..] 是否应该启用
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private static final String SYS_USER_PREFIX = "/sys-user";
+    private static final String LOGIN_URL = SYS_USER_PREFIX + "/login";
+    private static final String LOGOUT_URL = SYS_USER_PREFIX + "/logout";
 
     @Resource
     private PermissionService permissionService; // 用户数据来源
+
+    @Resource
+    private LocaleMessageConfig localeMessageSourceConfig;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -92,6 +108,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).enableSessionUrlRewriting(false)
                 .and().cors()
                 .and().authorizeRequests()
+                .antMatchers("/sys-user/**").permitAll()
                 .anyRequest().authenticated().accessDecisionManager(accessDecisionManager())
                 // 与accessDecisionManager不一样，ExpressionUrlAuthorizationConfigurer 并没有提供set方法设置FilterSecurityInterceptor的FilterInvocationSecurityMetadataSource，
                 // 可以使用一个扩展方法withObjectPostProcessor，通过该方法自定义一个处理FilterSecurityInterceptor类型的ObjectPostProcessor就可以修改FilterSecurityInterceptor
@@ -104,8 +121,25 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                     }
                 })
                 .and().anonymous().authorities(AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))
-                .and().logout().permitAll().clearAuthentication(true).invalidateHttpSession(true)
-                .and().formLogin().permitAll();
+                .and().logout().logoutSuccessUrl(LOGOUT_URL)
+                .permitAll().clearAuthentication(true).invalidateHttpSession(true)
+                .and().formLogin().loginProcessingUrl(LOGIN_URL).permitAll()
+                // 登录成功处理(默认为SavedRequestAwareAuthenticationSuccessHandler)
+                .successHandler((request, response, authentication) -> {
+                    LOGGER.info("【{}】登录成功", authentication.getName());
+                    ResultData resultData = new ResultData<>(HttpStatus.OK.value(),
+                            localeMessageSourceConfig.getMessage(ResultData.LOGIN_SUCCESS), null);
+                    response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                    response.getWriter().write(JSON.toJSONString(resultData));
+                })
+                // 登录失败处理(默认的为SimpleUrlAuthenticationFailureHandler)
+                .failureHandler((request, response, exception) -> {
+                    LOGGER.error("登录失败", exception);
+                    ResultData resultData = new ResultData<>(HttpStatus.UNAUTHORIZED.value(),
+                            localeMessageSourceConfig.getMessage(ResultData.LOGIN_FAILURE), null);
+                    response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                    response.getWriter().write(JSON.toJSONString(resultData));
+                });
         /*
         final类HttpSecurity常用方法与说明：
            1、openidLogin()：用于基于 OpenId 的验证。

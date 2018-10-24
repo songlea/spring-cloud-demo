@@ -26,6 +26,8 @@ spring:
     port: @config.spring.redis.port@
     password: "@config.spring.redis.password@"
     timeout: 30000ms
+  messages:
+    basename: i18n/message
 
 management:
   endpoints:

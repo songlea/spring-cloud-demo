@@ -36,7 +36,3 @@ spring:
     port: @config.spring.rabbitmq.port@
     username: "@config.spring.rabbitmq.username@"
     password: "@config.spring.rabbitmq.password@"
-  security:
-    user:
-      name: "@config.eureka.server.security.user.name@"
-      password: "@config.eureka.server.security.user.password@"
