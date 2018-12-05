@@ -45,6 +45,21 @@
         </dependency>
         -->
 
+        <!-- JWT验证 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-jwt</artifactId>
+            <version>1.0.9.RELEASE</version>
+        </dependency>
+
+        <!-- thymeleaf -->
+        <!--
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        -->
+
         <!-- 用于保存token,服务重启后,无须重新获取token-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -49,9 +49,4 @@ public class SysUserController {
         return new ResponseEntity<>("保存成功", HttpStatus.OK);
     }
 
-    // 登录
-    @RequestMapping(value = "/login", method = RequestMethod.POST)
-    public ResultData login(String username, String password) {
-        return null;
-    }
 }
