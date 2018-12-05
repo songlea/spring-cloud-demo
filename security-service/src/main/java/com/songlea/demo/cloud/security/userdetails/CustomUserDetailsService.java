@@ -97,8 +97,9 @@ public class CustomUserDetailsService implements UserDetailsService, MessageSour
 
     // 获取UserDetails,未查询到则返回null
     private CustomUserDetails loadUsersByUsername(String username) {
-        SysUser sysUser = permissionService.selectSysUserByAccount(username);
-        if (sysUser != null) {
+        Optional<SysUser> optionalSysUser = permissionService.selectSysUserByAccount(username);
+        if (optionalSysUser.isPresent()) {
+            SysUser sysUser = optionalSysUser.get();
             return CustomUserDetails.withUsername(username).id(sysUser.getId())
                     .password(sysUser.getPassword()).status(sysUser.getStatus())
                     .authorities(NO_AUTHORITIES).build();

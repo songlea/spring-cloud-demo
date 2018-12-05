@@ -1,6 +1,15 @@
 package com.songlea.demo.cloud.security.config;
 
 import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.songlea.demo.cloud.security.auth.ajax.AjaxAuthenticationProvider;
+import com.songlea.demo.cloud.security.auth.ajax.AjaxLoginProcessingFilter;
+import com.songlea.demo.cloud.security.auth.jwt.JwtAuthenticationProvider;
+import com.songlea.demo.cloud.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
+import com.songlea.demo.cloud.security.auth.jwt.SkipPathRequestMatcher;
+import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
+import com.songlea.demo.cloud.security.endpoint.RestAuthenticationEntryPoint;
+import com.songlea.demo.cloud.security.filter.CustomCorsFilter;
 import com.songlea.demo.cloud.security.filter.CustomInvocationSecurityMetadataSource;
 import com.songlea.demo.cloud.security.model.dto.ResultData;
 import com.songlea.demo.cloud.security.service.PermissionService;
@@ -8,6 +17,7 @@ import com.songlea.demo.cloud.security.userdetails.CustomUnanimousBased;
 import com.songlea.demo.cloud.security.userdetails.CustomUserDetailsService;
 import com.songlea.demo.cloud.security.userdetails.CustomUserRoleVoter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -17,7 +27,6 @@ import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,14 +36,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,20 +55,58 @@ import java.util.List;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
 public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Resource
-    private PermissionService permissionService; // 用户数据来源
+    public static final String AUTHENTICATION_HEADER_NAME = "Authorization";
+    public static final String AUTHENTICATION_URL = "/api/auth/login";
+    public static final String REFRESH_TOKEN_URL = "/api/auth/token";
+    public static final String API_ROOT_URL = "/api/**";
 
-    @Resource
+    @Autowired
+    private RestAuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private AuthenticationSuccessHandler successHandler;
+
+    @Autowired
+    private AuthenticationFailureHandler failureHandler;
+
+    @Autowired
+    private AjaxAuthenticationProvider ajaxAuthenticationProvider;
+
+    @Autowired
+    private JwtAuthenticationProvider jwtAuthenticationProvider;
+
+    @Autowired
+    private TokenExtractor tokenExtractor;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private PermissionService permissionService;
+
+    @Autowired
     private LocaleMessageConfig localeMessageSourceConfig;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        // PasswordEncoder:密码加密接口
-        // 推荐使用实现类BCryptPasswordEncoder、SCryptPasswordEncoder与Pbkdf2PasswordEncoder
-        return new BCryptPasswordEncoder();
+    protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter(String loginEntryPoint) {
+        AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(loginEntryPoint,
+                successHandler, failureHandler, objectMapper);
+        filter.setAuthenticationManager(this.authenticationManager);
+        return filter;
     }
 
-    @Bean
+    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter(
+            List<String> pathsToSkip, String pattern) {
+        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, pattern);
+        JwtTokenAuthenticationProcessingFilter filter
+                = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
+        filter.setAuthenticationManager(this.authenticationManager);
+        return filter;
+    }
+
+    // @Bean
     public AccessDecisionManager accessDecisionManager() {
         List<AccessDecisionVoter<?>> decisionVoters = Arrays.asList(
                 // 支持表达式投票器,如hasRole("")
@@ -77,7 +123,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
         return customUnanimousBased;
     }
 
-    @Bean
+    // @Bean
     public FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource(
             FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource) {
         // 访问资源即url时，会通过AbstractSecurityInterceptor拦截器拦截，其中会调用FilterInvocationSecurityMetadataSource的方法来获取被拦截url所需的全部权限，
@@ -111,31 +157,37 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        List<String> permitAllEndpointList = Arrays.asList(AUTHENTICATION_URL, REFRESH_TOKEN_URL);
         http
+                .csrf().disable()
+                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
+
                 // Session设置
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).enableSessionUrlRewriting(false)
+                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).enableSessionUrlRewriting(false)
 
                 // 权限设置
                 .and().authorizeRequests()
                 // 登录界面不需要验证
-                .antMatchers("/login/**").permitAll()
-                .anyRequest().authenticated().accessDecisionManager(accessDecisionManager())
+                .antMatchers(permitAllEndpointList.toArray(new String[0])).permitAll()
+                .anyRequest().authenticated()
+
+                //.accessDecisionManager(accessDecisionManager())
                 // 与accessDecisionManager不一样，ExpressionUrlAuthorizationConfigurer 并没有提供set方法设置FilterSecurityInterceptor的FilterInvocationSecurityMetadataSource，
                 // 可以使用一个扩展方法withObjectPostProcessor，通过该方法自定义一个处理FilterSecurityInterceptor类型的ObjectPostProcessor就可以修改FilterSecurityInterceptor
-                .withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
+                /*.withObjectPostProcessor(new ObjectPostProcessor<FilterSecurityInterceptor>() {
                     @Override
                     public <O extends FilterSecurityInterceptor> O postProcess(O object) {
                         object.setRejectPublicInvocations(true);
                         object.setSecurityMetadataSource(filterInvocationSecurityMetadataSource(object.getSecurityMetadataSource()));
                         return object;
                     }
-                })
+                })*/
 
                 // 匿名设置,默认的过滤器为AnonymousAuthenticationFilter
                 .and().anonymous().principal("anonymousUser").authorities(AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"))
 
                 // 登录设置,登录成功处理默认为SavedRequestAwareAuthenticationSuccessHandler,登录失败处理默认的为SimpleUrlAuthenticationFailureHandler
-                .and().formLogin().loginProcessingUrl("/login/in").permitAll()
+                .and().formLogin().permitAll()
                 .successHandler(new SavedRequestAwareAuthenticationSuccessHandler()
                      /*
                      // 此处为返回一个登录成功的json,而默认的SavedRequestAwareAuthenticationSuccessHandler会重定向到保存的url中
@@ -158,9 +210,10 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 // 登出设置,logoutSuccessUrl默认/login?logout,而默认的logoutSuccessHandler为SimpleUrlLogoutSuccessHandler
                 .and().logout().invalidateHttpSession(true).clearAuthentication(true).permitAll()
 
-                // 跨域请求设置
-                .and().cors().disable();
-
+                // 过滤器配置
+                .and().addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildAjaxLoginProcessingFilter(AUTHENTICATION_URL), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(permitAllEndpointList, API_ROOT_URL), UsernamePasswordAuthenticationFilter.class);
         /*
         final类HttpSecurity常用方法与说明：
            1、openidLogin()：用于基于 OpenId 的验证。
@@ -190,9 +243,9 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService())
-                .passwordEncoder(passwordEncoder());
+    protected void configure(AuthenticationManagerBuilder auth) {
+        auth.authenticationProvider(ajaxAuthenticationProvider)
+                .authenticationProvider(jwtAuthenticationProvider);
     }
 
     @Override

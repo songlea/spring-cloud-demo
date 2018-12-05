@@ -5,6 +5,7 @@ import com.songlea.demo.cloud.security.model.db.SysRole;
 import com.songlea.demo.cloud.security.model.db.SysUser;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 权限相关的服务层接口
@@ -16,7 +17,7 @@ public interface PermissionService {
 
     List<SysRole> listSysRoleByUserId(Integer userId);
 
-    SysUser selectSysUserByAccount(String username);
+    Optional<SysUser> selectSysUserByAccount(String username);
 
     List<SysMenu> selectAllSysMenu();
 

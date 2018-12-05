@@ -7,6 +7,12 @@ info:
   version: "@project.version@"
   description: "@project.description@"
 
+demo.security.jwt:
+  tokenExpirationTime: 15
+  refreshTokenExpTime: 60
+  tokenIssuer: https://github.com/SongLea
+  tokenSigningKey: xm8EV6Hy5RMFK4EEACIDAwQus
+
 spring:
   http:
     encoding:

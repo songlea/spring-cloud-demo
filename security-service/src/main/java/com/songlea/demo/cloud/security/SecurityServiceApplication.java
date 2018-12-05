@@ -3,6 +3,7 @@ package com.songlea.demo.cloud.security;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableEurekaClient
 @EnableTransactionManagement
 @MapperScan(basePackages = {"com.songlea.demo.cloud.security.mapper"})
+@EnableConfigurationProperties
 public class SecurityServiceApplication {
 
     public static void main(String[] args) {

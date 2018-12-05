@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 权限相关的服务层接口实现
@@ -47,16 +48,15 @@ public class PermissionServiceImpl implements PermissionService {
     }
 
     @Override
-    public SysUser selectSysUserByAccount(String account) {
+    public Optional<SysUser> selectSysUserByAccount(String account) {
         List<SysUser> sysUsers = sysUserMapper.selectSysUserByAccount(account);
         if (sysUsers != null && !sysUsers.isEmpty()) {
             if (sysUsers.size() > 1) {
-                // 用户名重复
                 LOGGER.warn("There are {} identical user account name '{}'", sysUsers.size(), account);
             }
-            return sysUsers.get(0);
+            return Optional.of(sysUsers.get(0));
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
