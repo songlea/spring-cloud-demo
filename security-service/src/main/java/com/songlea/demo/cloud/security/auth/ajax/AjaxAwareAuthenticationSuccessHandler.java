@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.songlea.demo.cloud.security.model.UserContext;
 import com.songlea.demo.cloud.security.model.token.JwtToken;
 import com.songlea.demo.cloud.security.model.token.JwtTokenFactory;
+import io.jsonwebtoken.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +31,8 @@ public class AjaxAwareAuthenticationSuccessHandler implements AuthenticationSucc
 
     @Autowired
     public AjaxAwareAuthenticationSuccessHandler(final ObjectMapper mapper, final JwtTokenFactory tokenFactory) {
+        Assert.notNull(mapper, "mapper must be not null");
+        Assert.notNull(tokenFactory, "tokenFactory must be not null");
         this.mapper = mapper;
         this.tokenFactory = tokenFactory;
     }

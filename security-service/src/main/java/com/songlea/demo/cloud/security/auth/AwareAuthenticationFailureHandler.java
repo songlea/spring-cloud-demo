@@ -13,8 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -70,6 +69,16 @@ public class AwareAuthenticationFailureHandler implements AuthenticationFailureH
             mapper.writeValue(response.getWriter(), ErrorResponse.of(
                     localeMessageConfig.getMessage(ErrorResponse.TOKEN_HAS_EXPIRED_OR_INVALID),
                     ErrorCode.JWT_TOKEN_EXPIRED_OR_INVALID, HttpStatus.UNAUTHORIZED));
+        } else if (e instanceof LockedException || e instanceof DisabledException) {
+            // 用户被锁定
+            mapper.writeValue(response.getWriter(), ErrorResponse.of(
+                    localeMessageConfig.getMessage(ErrorResponse.USER_ACCOUNT_IS_LOCKED),
+                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
+        } else if (e instanceof AccountExpiredException || e instanceof CredentialsExpiredException) {
+            // 账户或密码过期
+            mapper.writeValue(response.getWriter(), ErrorResponse.of(
+                    localeMessageConfig.getMessage(ErrorResponse.USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED),
+                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
         }
         // 验证失败
         mapper.writeValue(response.getWriter(), ErrorResponse.of(

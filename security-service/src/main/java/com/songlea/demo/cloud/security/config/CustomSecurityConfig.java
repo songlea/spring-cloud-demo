@@ -1,19 +1,19 @@
 package com.songlea.demo.cloud.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.songlea.demo.cloud.security.auth.RestAuthenticationEntryPoint;
 import com.songlea.demo.cloud.security.auth.ajax.AjaxAuthenticationProvider;
 import com.songlea.demo.cloud.security.auth.ajax.AjaxLoginAuthenticationProcessingFilter;
 import com.songlea.demo.cloud.security.auth.jwt.JwtAuthenticationProvider;
 import com.songlea.demo.cloud.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
 import com.songlea.demo.cloud.security.auth.jwt.SkipPathRequestMatcher;
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
-import com.songlea.demo.cloud.security.endpoint.RestAuthenticationEntryPoint;
-import com.songlea.demo.cloud.security.endpoint.TokenEndpoint;
+import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetailsService;
+import com.songlea.demo.cloud.security.controller.JwtTokenController;
 import com.songlea.demo.cloud.security.filter.CustomCorsFilter;
 import com.songlea.demo.cloud.security.filter.CustomInvocationSecurityMetadataSource;
 import com.songlea.demo.cloud.security.service.PermissionService;
 import com.songlea.demo.cloud.security.userdetails.CustomUnanimousBased;
-import com.songlea.demo.cloud.security.userdetails.CustomUserDetailsService;
 import com.songlea.demo.cloud.security.userdetails.CustomUserRoleVoter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +78,9 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private PermissionService permissionService;
 
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
+
     // @Bean
     public AccessDecisionManager accessDecisionManager() {
         List<AccessDecisionVoter<?>> decisionVoters = Arrays.asList(
@@ -114,7 +117,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
     UserDetailService：用户认证通过Provider来做，所以Provider需要拿到系统已经保存的认证信息，获取用户信息的接口spring-security抽象成UserDetailService。
     AuthenticationToken：所有提交给AuthenticationManager的认证请求都会被封装成一个Token的实现，比如最容易理解的UsernamePasswordAuthenticationToken。
     SecurityContext：当用户通过认证之后，就会为这个用户生成一个唯一的SecurityContext，里面包含用户的认证信息Authentication。
-        通过SecurityContext我们可以获取到用户的标识Principle和授权信息GrantedAuthrity。在系统的任何地方只要通过SecurityHolder.getSecruityContext()就可以获取到SecurityContext。
+        通过SecurityContext我们可以获取到用户的标识Principle和授权信息GrantedAuthrity。在系统的任何地方只要通过SecurityHolder.getSecurityContext()就可以获取到SecurityContext。
      */
     @Override
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
@@ -124,15 +127,16 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected UserDetailsService userDetailsService() {
-        return new CustomUserDetailsService(permissionService);
+        return customUserDetailsService;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        List<String> permitAllEndpointList = Arrays.asList(TokenEndpoint.AUTHENTICATION_URL, TokenEndpoint.REFRESH_TOKEN_URL);
+        List<String> permitAllEndpointList = Arrays.asList(JwtTokenController.AUTHENTICATION_URL, JwtTokenController.REFRESH_TOKEN_URL);
         http
                 .csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
+                // .accessDeniedHandler(new AccessDeniedHandlerImpl())
 
                 // Session设置
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).enableSessionUrlRewriting(false)
@@ -141,6 +145,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().authorizeRequests()
                 // 登录界面不需要验证
                 .antMatchers(permitAllEndpointList.toArray(new String[0])).permitAll()
+                .antMatchers("/sys-user/**").permitAll()
                 .anyRequest().authenticated()
 
                 //.accessDecisionManager(accessDecisionManager())
@@ -183,11 +188,11 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 // 过滤器配置
                 .and().addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
                 // 用户或密码的POST请求登录验证(ajax的POST请求)
-                .addFilterBefore(new AjaxLoginAuthenticationProcessingFilter(TokenEndpoint.AUTHENTICATION_URL, authenticationManager,
+                .addFilterBefore(new AjaxLoginAuthenticationProcessingFilter(JwtTokenController.AUTHENTICATION_URL, authenticationManager,
                         successHandler, failureHandler, objectMapper), UsernamePasswordAuthenticationFilter.class)
                 // jwt请求验证
                 .addFilterBefore(new JwtTokenAuthenticationProcessingFilter(authenticationManager, failureHandler, tokenExtractor,
-                                new SkipPathRequestMatcher(permitAllEndpointList, TokenEndpoint.API_ROOT_URL)),
+                                new SkipPathRequestMatcher(permitAllEndpointList, JwtTokenController.API_ROOT_URL)),
                         UsernamePasswordAuthenticationFilter.class);
         /*
         final类HttpSecurity常用方法与说明：

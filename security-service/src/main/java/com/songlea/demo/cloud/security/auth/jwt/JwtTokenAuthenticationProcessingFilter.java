@@ -1,7 +1,7 @@
 package com.songlea.demo.cloud.security.auth.jwt;
 
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
-import com.songlea.demo.cloud.security.endpoint.TokenEndpoint;
+import com.songlea.demo.cloud.security.controller.JwtTokenController;
 import com.songlea.demo.cloud.security.model.token.RawAccessJwtToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -42,7 +42,7 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
-        String tokenPayload = request.getHeader(TokenEndpoint.AUTHENTICATION_HEADER_NAME);
+        String tokenPayload = request.getHeader(JwtTokenController.AUTHENTICATION_HEADER_NAME);
         RawAccessJwtToken token = new RawAccessJwtToken(tokenExtractor.extract(tokenPayload));
         return getAuthenticationManager().authenticate(new JwtAuthenticationToken(token));
     }

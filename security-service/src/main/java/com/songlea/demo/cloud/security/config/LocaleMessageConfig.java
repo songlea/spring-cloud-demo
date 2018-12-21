@@ -1,10 +1,10 @@
 package com.songlea.demo.cloud.security.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-import javax.annotation.Resource;
 import java.util.Locale;
 
 /**
@@ -15,8 +15,12 @@ import java.util.Locale;
 @Configuration
 public class LocaleMessageConfig {
 
-    @Resource
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
+
+    @Autowired
+    public LocaleMessageConfig(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     /**
      * @param key :对应messages配置的key

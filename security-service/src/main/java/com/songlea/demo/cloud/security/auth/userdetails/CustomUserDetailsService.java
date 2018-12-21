@@ -1,21 +1,24 @@
-package com.songlea.demo.cloud.security.userdetails;
+package com.songlea.demo.cloud.security.auth.userdetails;
 
 import com.songlea.demo.cloud.security.model.db.SysRole;
 import com.songlea.demo.cloud.security.model.db.SysUser;
 import com.songlea.demo.cloud.security.service.PermissionService;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceAware;
-import org.springframework.context.support.MessageSourceAccessor;
+import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.SpringSecurityMessageSource;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,34 +30,40 @@ import java.util.stream.Collectors;
  *
  * @author Song Lea
  */
-@Slf4j
+@Component
 public class CustomUserDetailsService implements UserDetailsService, MessageSourceAware {
 
-    // 默认权限集合为空
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomUserDetailsService.class);
     private static final List<GrantedAuthority> NO_AUTHORITIES = Collections.emptyList();
-    private MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
 
-    // 权限名前缀
     private String rolePrefix = "";
     private boolean usernameBasedPrimaryKey = true;
     private boolean enableAuthorities = true;
 
-    // 用户在数据库中通过用户名来查询用户
-    private PermissionService permissionService;
+    private final PermissionService permissionService;
+    private final UserCache userCache;
 
-    public CustomUserDetailsService(PermissionService permissionService) {
+    @Autowired
+    public CustomUserDetailsService(PermissionService permissionService, UserCache userCache) {
         Assert.notNull(permissionService, "permissionService cannot be null");
+        Assert.notNull(userCache, "userCache cannot be null");
         this.permissionService = permissionService;
+        this.userCache = userCache;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 缓存中获取
+        UserDetails user = userCache.getUserFromCache(username);
+        if (user != null) {
+            LOGGER.debug("Query returned from cache, username: {}", username);
+            return user;
+        }
+        // 若缓存中没有再从DB中获取
         CustomUserDetails detailsWrapper = loadUsersByUsername(username);
         if (detailsWrapper == null) {
-            LOGGER.info("Query returned no results for user account  '" + username + "'");
-            throw new UsernameNotFoundException(
-                    this.messages.getMessage("PermissionService.selectByPrimaryKey.notFound",
-                            new Object[]{username}, "Username {0} not found"));
+            LOGGER.error("Query returned no results for user account  '" + username + "'");
+            throw new UsernameNotFoundException("User not found: " + username);
         }
 
         Set<GrantedAuthority> dbAuthSet = new HashSet<>();
@@ -66,18 +75,13 @@ public class CustomUserDetailsService implements UserDetailsService, MessageSour
         List<GrantedAuthority> dbAuthList = new ArrayList<>(dbAuthSet);
 
         if (dbAuthList.size() == 0) {
-            LOGGER.info("User '" + username + "' has no authorities and will be treated as 'not found'");
-            throw new UsernameNotFoundException(this.messages.getMessage(
-                    "PermissionService.listSysRoleByUserId.noAuthority",
-                    new Object[]{username}, "User {0} has no GrantedAuthority"));
+            LOGGER.error("User '" + username + "' has no authorities and will be treated as 'not found'");
+            throw new InsufficientAuthenticationException("User has no roles assigned");
         }
-        return createUserDetails(username, detailsWrapper, dbAuthList);
-    }
-
-    @Override
-    public void setMessageSource(@NotNull MessageSource messageSource) {
-        Assert.notNull(messageSource, "messageSource cannot be null");
-        this.messages = new MessageSourceAccessor(messageSource);
+        UserDetails userDetails = createUserDetails(username, detailsWrapper, dbAuthList);
+        // 保存于缓存中
+        userCache.putUserInCache(userDetails);
+        return userDetails;
     }
 
     // 设置role前缀
@@ -124,7 +128,16 @@ public class CustomUserDetailsService implements UserDetailsService, MessageSour
         if (!this.usernameBasedPrimaryKey) {
             returnUsername = username;
         }
-        return new CustomUserDetails(userFromUserQuery.getCurrentUserId(), returnUsername,
-                userFromUserQuery.getPassword(), combinedAuthorities);
+        return CustomUserDetails.withUsername(returnUsername)
+                .id(userFromUserQuery.getCurrentUserId())
+                .password(userFromUserQuery.getPassword())
+                .status(userFromUserQuery.getStatus())
+                .authorities(combinedAuthorities).build();
+    }
+
+
+    @Override
+    public void setMessageSource(@NonNull MessageSource messageSource) {
+
     }
 }

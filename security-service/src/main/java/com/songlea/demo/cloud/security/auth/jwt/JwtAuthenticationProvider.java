@@ -5,6 +5,7 @@ import com.songlea.demo.cloud.security.model.UserContext;
 import com.songlea.demo.cloud.security.model.token.RawAccessJwtToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
@@ -29,6 +30,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
     public JwtAuthenticationProvider(JwtSettings jwtSettings) {
+        Assert.notNull(jwtSettings, "jwtSettings must be not null");
         this.jwtSettings = jwtSettings;
     }
 

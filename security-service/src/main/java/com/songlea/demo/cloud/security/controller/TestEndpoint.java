@@ -16,14 +16,13 @@ import javax.annotation.security.RolesAllowed;
  * 暴露一个商品查询接口，后续不做安全限制；一个订单查询接口，后续添加访问控制
  */
 @RestController
-@RequestMapping("/api")
 public class TestEndpoint {
 
     @Autowired
     private SysUserMapper sysUserMapper;
 
     @GetMapping("/product/{id}")
-    @RolesAllowed(value = {"ROLE_ADMIN"})
+    @RolesAllowed(value = {"ROLE_ADMIN", "ROLE_ANONYMOUS"})
     public String getProduct(@PathVariable String id) {
 
         //for debug

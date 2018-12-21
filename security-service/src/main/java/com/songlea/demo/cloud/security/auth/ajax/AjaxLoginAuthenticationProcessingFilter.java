@@ -1,6 +1,7 @@
 package com.songlea.demo.cloud.security.auth.ajax;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetailsService;
 import com.songlea.demo.cloud.security.exceptions.AuthMethodNotSupportedException;
 import com.songlea.demo.cloud.security.exceptions.NoUsernameOrPasswordException;
 import com.songlea.demo.cloud.security.model.LoginRequest;

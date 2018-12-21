@@ -1,4 +1,4 @@
-package com.songlea.demo.cloud.security.endpoint;
+package com.songlea.demo.cloud.security.controller;
 
 import com.songlea.demo.cloud.security.auth.jwt.JwtAuthenticationToken;
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * RefreshTokenEndpoint
  */
 @RestController
-public class TokenEndpoint {
+public class JwtTokenController {
 
     /**
      * token的请求头标识
@@ -73,7 +73,6 @@ public class TokenEndpoint {
     private TokenVerifier tokenVerifier;
 
     @Autowired
-    @Qualifier("jwtHeaderTokenExtractor")
     private TokenExtractor tokenExtractor;
 
     @RequestMapping(value = AUTHENTICATION_URL, method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})

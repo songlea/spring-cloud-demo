@@ -1,4 +1,4 @@
-package com.songlea.demo.cloud.security.userdetails;
+package com.songlea.demo.cloud.security.auth.userdetails;
 
 import com.songlea.demo.cloud.security.model.db.SysUser;
 import org.springframework.security.core.CredentialsContainer;
@@ -19,9 +19,7 @@ import java.util.*;
 public class CustomUserDetails implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = 5369953176452532224L;
-
-    // 角色名前缀
-    public static final String ROLE_PREFIX = "ROLE_";
+    private static final String ROLE_PREFIX = "ROLE_";
 
     // 用户表主键id
     private Integer id;
@@ -59,6 +57,10 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
         return authorities;
+    }
+
+    public Integer getStatus() {
+        return status;
     }
 
     @Override
