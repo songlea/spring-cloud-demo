@@ -1,9 +1,9 @@
 package com.songlea.demo.cloud.security.auth.jwt;
 
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
-import com.songlea.demo.cloud.security.config.CustomSecurityConfig;
+import com.songlea.demo.cloud.security.endpoint.TokenEndpoint;
 import com.songlea.demo.cloud.security.model.token.RawAccessJwtToken;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
@@ -26,13 +26,15 @@ import java.io.IOException;
  */
 public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
+    private final AuthenticationManager authenticationManager;
     private final AuthenticationFailureHandler failureHandler;
     private final TokenExtractor tokenExtractor;
 
-    @Autowired
-    public JwtTokenAuthenticationProcessingFilter(AuthenticationFailureHandler failureHandler,
+    public JwtTokenAuthenticationProcessingFilter(AuthenticationManager authenticationManager,
+                                                  AuthenticationFailureHandler failureHandler,
                                                   TokenExtractor tokenExtractor, RequestMatcher matcher) {
         super(matcher);
+        this.authenticationManager = authenticationManager;
         this.failureHandler = failureHandler;
         this.tokenExtractor = tokenExtractor;
     }
@@ -40,7 +42,7 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
-        String tokenPayload = request.getHeader(CustomSecurityConfig.AUTHENTICATION_HEADER_NAME);
+        String tokenPayload = request.getHeader(TokenEndpoint.AUTHENTICATION_HEADER_NAME);
         RawAccessJwtToken token = new RawAccessJwtToken(tokenExtractor.extract(tokenPayload));
         return getAuthenticationManager().authenticate(new JwtAuthenticationToken(token));
     }
@@ -59,5 +61,19 @@ public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticati
                                               AuthenticationException failed) throws IOException, ServletException {
         SecurityContextHolder.clearContext();
         failureHandler.onAuthenticationFailure(request, response, failed);
+    }
+
+    @Override
+    public AuthenticationManager getAuthenticationManager() {
+        return authenticationManager;
+    }
+
+    @Override
+    public AuthenticationFailureHandler getFailureHandler() {
+        return failureHandler;
+    }
+
+    public TokenExtractor getTokenExtractor() {
+        return tokenExtractor;
     }
 }

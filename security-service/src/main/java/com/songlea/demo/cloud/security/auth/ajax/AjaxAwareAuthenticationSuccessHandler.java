@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * ajax请求验证成功处理器
+ * ajax登录请求验证成功处理器,默认的为SavedRequestAwareAuthenticationSuccessHandler
  */
 @Component
 public class AjaxAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {

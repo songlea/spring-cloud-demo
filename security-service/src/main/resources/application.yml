@@ -7,6 +7,7 @@ info:
   version: "@project.version@"
   description: "@project.description@"
 
+
 demo.security.jwt:
   tokenExpirationTime: 15
   refreshTokenExpTime: 60
@@ -54,3 +55,4 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
   params: count=countSql
+debug: true

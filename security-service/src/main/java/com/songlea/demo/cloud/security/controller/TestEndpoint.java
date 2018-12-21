@@ -6,19 +6,24 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.security.RolesAllowed;
 
 /**
  * 创建一个endpoint作为提供给外部的接口：
  * 暴露一个商品查询接口，后续不做安全限制；一个订单查询接口，后续添加访问控制
  */
 @RestController
+@RequestMapping("/api")
 public class TestEndpoint {
 
     @Autowired
     private SysUserMapper sysUserMapper;
 
     @GetMapping("/product/{id}")
+    @RolesAllowed(value = {"ROLE_ADMIN"})
     public String getProduct(@PathVariable String id) {
 
         //for debug

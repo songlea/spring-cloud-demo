@@ -2,10 +2,12 @@ package com.songlea.demo.cloud.security.auth.ajax;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.songlea.demo.cloud.security.exceptions.AuthMethodNotSupportedException;
+import com.songlea.demo.cloud.security.exceptions.NoUsernameOrPasswordException;
+import com.songlea.demo.cloud.security.model.LoginRequest;
 import com.songlea.demo.cloud.security.util.WebUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -23,15 +25,18 @@ import java.io.IOException;
 /**
  * ajax请求过滤器
  */
-public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingFilter {
+public class AjaxLoginAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
+    private final AuthenticationManager authenticationManager;
     private final AuthenticationSuccessHandler successHandler;
     private final AuthenticationFailureHandler failureHandler;
     private final ObjectMapper objectMapper;
 
-    public AjaxLoginProcessingFilter(String defaultProcessUrl, AuthenticationSuccessHandler successHandler,
-                                     AuthenticationFailureHandler failureHandler, ObjectMapper mapper) {
+    public AjaxLoginAuthenticationProcessingFilter(String defaultProcessUrl, AuthenticationManager authenticationManager,
+                                                   AuthenticationSuccessHandler successHandler,
+                                                   AuthenticationFailureHandler failureHandler, ObjectMapper mapper) {
         super(defaultProcessUrl);
+        this.authenticationManager = authenticationManager;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
         this.objectMapper = mapper;
@@ -50,7 +55,7 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
         LoginRequest loginRequest = objectMapper.readValue(request.getReader(), LoginRequest.class);
 
         if (StringUtils.isBlank(loginRequest.getUsername()) || StringUtils.isBlank(loginRequest.getPassword())) {
-            throw new AuthenticationServiceException("Username or Password not provided");
+            throw new NoUsernameOrPasswordException("Username or Password not provided");
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
@@ -70,5 +75,24 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
                                               AuthenticationException failed) throws IOException, ServletException {
         SecurityContextHolder.clearContext();
         failureHandler.onAuthenticationFailure(request, response, failed);
+    }
+
+    @Override
+    public AuthenticationManager getAuthenticationManager() {
+        return authenticationManager;
+    }
+
+    @Override
+    public AuthenticationSuccessHandler getSuccessHandler() {
+        return successHandler;
+    }
+
+    @Override
+    public AuthenticationFailureHandler getFailureHandler() {
+        return failureHandler;
+    }
+
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
     }
 }

@@ -1,17 +1,19 @@
-package com.songlea.demo.cloud.security.model.dto;
-
-import java.util.Date;
+package com.songlea.demo.cloud.security.model;
 
 import org.springframework.http.HttpStatus;
 
+import java.util.Date;
+
 /**
  * Error model for interacting with client.
- * 
- * @author vladimir.stankovic
- *
- * Aug 3, 2016
  */
 public class ErrorResponse {
+
+    public static final String INVALID_USERNAME_OR_PASSWORD = "invalid_username_or_password";
+    public static final String AUTHENTICATION_METHOD_NOT_SUPPORTED = "authentication_method_not_supported";
+    public static final String USER_HAS_NO_ROLES_ASSIGNED = "user_has_no_roles_assigned";
+    public static final String TOKEN_HAS_EXPIRED_OR_INVALID = "token_has_expired_or_invalid";
+    public static final String AUTHENTICATION_FAILED = "authentication_failed";
 
     // HTTP Response Status Code
     private final HttpStatus status;

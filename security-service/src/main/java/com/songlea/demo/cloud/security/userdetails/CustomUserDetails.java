@@ -20,6 +20,9 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = 5369953176452532224L;
 
+    // 角色名前缀
+    public static final String ROLE_PREFIX = "ROLE_";
+
     // 用户表主键id
     private Integer id;
     // 用户名
@@ -196,8 +199,7 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
         public UserBuilder roles(String... roles) {
             List<GrantedAuthority> authorities = new ArrayList<>(roles.length);
             for (String role : roles) {
-                // 不判断角色的ROLE_前缀
-                // Assert.isTrue(!role.startsWith("ROLE_"), role + " cannot start with ROLE_ (it is automatically added)");
+                Assert.isTrue(!role.startsWith(ROLE_PREFIX), role + " cannot start with ROLE_");
                 authorities.add(new SimpleGrantedAuthority(role));
             }
             return authorities(authorities);

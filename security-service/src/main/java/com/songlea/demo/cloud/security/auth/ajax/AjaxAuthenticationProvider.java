@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 认证的具体实现类,一个provider是一种认证方式的实现
+ * ajax请求认证的具体实现类
  */
 @Component
 public class AjaxAuthenticationProvider implements AuthenticationProvider {

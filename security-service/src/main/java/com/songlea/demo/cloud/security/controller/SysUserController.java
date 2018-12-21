@@ -2,7 +2,6 @@ package com.songlea.demo.cloud.security.controller;
 
 import com.songlea.demo.cloud.security.mapper.SysUserMapper;
 import com.songlea.demo.cloud.security.model.db.SysUser;
-import com.songlea.demo.cloud.security.model.dto.ResultData;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
