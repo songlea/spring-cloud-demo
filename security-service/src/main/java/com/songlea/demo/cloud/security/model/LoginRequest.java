@@ -19,6 +19,7 @@ public class LoginRequest {
         this.password = password;
     }
 
+    // @JsonValue 可以用在get方法或者属性字段上,一个类只能用一个,当加上@JsonValue注解时序列化是只返回这一个字段的值
     public String getUsername() {
         return username;
     }

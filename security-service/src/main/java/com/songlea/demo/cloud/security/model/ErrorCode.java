@@ -3,11 +3,18 @@ package com.songlea.demo.cloud.security.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * ErrorCode
+ * ErrorCode:验证错误时本地的错误编码
  */
 public enum ErrorCode {
 
-    GLOBAL(2), AUTHENTICATION(10), JWT_TOKEN_EXPIRED_OR_INVALID(11);
+    GLOBAL(1),
+    AUTHENTICATION_FAILED(10),
+    INVALID_USERNAME_OR_PASSWORD(11),
+    AUTHENTICATION_METHOD_NOT_SUPPORTED(12),
+    USER_HAS_NO_ROLES_ASSIGNED(13),
+    USER_ACCOUNT_IS_LOCKED_OR_DISABLE(14),
+    USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED(15),
+    TOKEN_HAS_EXPIRED_OR_INVALID(16);
 
     private int errorCode;
 

@@ -51,38 +51,39 @@ public class AwareAuthenticationFailureHandler implements AuthenticationFailureH
         if (e instanceof BadCredentialsException || e instanceof UsernameNotFoundException
                 || e instanceof NoUsernameOrPasswordException) {
             // 用户名或密码错误
-            mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                    localeMessageConfig.getMessage(ErrorResponse.INVALID_USERNAME_OR_PASSWORD),
-                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.INVALID_USERNAME_OR_PASSWORD),
+                            ErrorCode.INVALID_USERNAME_OR_PASSWORD, HttpStatus.UNAUTHORIZED));
         } else if (e instanceof AuthMethodNotSupportedException) {
             // 验证的请求方式不正确
-            mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                    localeMessageConfig.getMessage(ErrorResponse.AUTHENTICATION_METHOD_NOT_SUPPORTED),
-                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.AUTHENTICATION_METHOD_NOT_SUPPORTED),
+                            ErrorCode.AUTHENTICATION_METHOD_NOT_SUPPORTED, HttpStatus.UNAUTHORIZED));
         } else if (e instanceof InsufficientAuthenticationException) {
             // 用户未分配角色
-            mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                    localeMessageConfig.getMessage(ErrorResponse.USER_HAS_NO_ROLES_ASSIGNED),
-                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.USER_HAS_NO_ROLES_ASSIGNED),
+                            ErrorCode.USER_HAS_NO_ROLES_ASSIGNED, HttpStatus.UNAUTHORIZED));
         } else if (e instanceof JwtTokenExpiredException || e instanceof InvalidJwtTokenException) {
-            // token过期
-            mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                    localeMessageConfig.getMessage(ErrorResponse.TOKEN_HAS_EXPIRED_OR_INVALID),
-                    ErrorCode.JWT_TOKEN_EXPIRED_OR_INVALID, HttpStatus.UNAUTHORIZED));
+            // token过期或不合法
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.TOKEN_HAS_EXPIRED_OR_INVALID),
+                            ErrorCode.TOKEN_HAS_EXPIRED_OR_INVALID, HttpStatus.UNAUTHORIZED));
         } else if (e instanceof LockedException || e instanceof DisabledException) {
             // 用户被锁定
-            mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                    localeMessageConfig.getMessage(ErrorResponse.USER_ACCOUNT_IS_LOCKED),
-                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.USER_ACCOUNT_IS_LOCKED_OR_DISABLE),
+                            ErrorCode.USER_ACCOUNT_IS_LOCKED_OR_DISABLE, HttpStatus.UNAUTHORIZED));
         } else if (e instanceof AccountExpiredException || e instanceof CredentialsExpiredException) {
             // 账户或密码过期
-            mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                    localeMessageConfig.getMessage(ErrorResponse.USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED),
-                    ErrorCode.AUTHENTICATION, HttpStatus.UNAUTHORIZED));
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED),
+                            ErrorCode.USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED, HttpStatus.UNAUTHORIZED));
+        } else {
+            // 其他的验证失败异常
+            mapper.writeValue(response.getWriter(),
+                    ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.AUTHENTICATION_FAILED),
+                            ErrorCode.AUTHENTICATION_FAILED, HttpStatus.UNAUTHORIZED));
         }
-        // 验证失败
-        mapper.writeValue(response.getWriter(), ErrorResponse.of(
-                localeMessageConfig.getMessage(ErrorResponse.AUTHENTICATION_FAILED),
-                ErrorCode.GLOBAL, HttpStatus.UNAUTHORIZED));
     }
 }

@@ -14,18 +14,12 @@ public class ErrorResponse {
     public static final String USER_HAS_NO_ROLES_ASSIGNED = "user_has_no_roles_assigned";
     public static final String TOKEN_HAS_EXPIRED_OR_INVALID = "token_has_expired_or_invalid";
     public static final String AUTHENTICATION_FAILED = "authentication_failed";
-    public static final String USER_ACCOUNT_IS_LOCKED = "user_account_is_locked";
+    public static final String USER_ACCOUNT_IS_LOCKED_OR_DISABLE = "user_account_is_locked_or_disable";
     public static final String USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED = "user_account_or_password_has_expired";
 
-    // HTTP Response Status Code
     private final HttpStatus status;
-
-    // General Error message
     private final String message;
-
-    // Error code
     private final ErrorCode errorCode;
-
     private final Date timestamp;
 
     protected ErrorResponse(final String message, final ErrorCode errorCode, HttpStatus status) {
