@@ -21,5 +21,5 @@ public interface PermissionService {
 
     List<SysMenu> selectAllSysMenu();
 
-    List<SysRole> selectSysRoleByMenuId(Integer id);
+    List<SysRole> selectSysRoleByMenuId(Integer menuId);
 }

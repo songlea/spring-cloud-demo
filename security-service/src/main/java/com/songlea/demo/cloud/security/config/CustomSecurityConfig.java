@@ -8,11 +8,10 @@ import com.songlea.demo.cloud.security.auth.jwt.JwtAuthenticationProvider;
 import com.songlea.demo.cloud.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
 import com.songlea.demo.cloud.security.auth.jwt.SkipPathRequestMatcher;
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
-import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetailsService;
+import com.songlea.demo.cloud.security.auth.userdetails.ExtendUserDetailsService;
 import com.songlea.demo.cloud.security.controller.JwtTokenController;
 import com.songlea.demo.cloud.security.filter.CustomCorsFilter;
 import com.songlea.demo.cloud.security.filter.CustomInvocationSecurityMetadataSource;
-import com.songlea.demo.cloud.security.service.PermissionService;
 import com.songlea.demo.cloud.security.userdetails.CustomUnanimousBased;
 import com.songlea.demo.cloud.security.userdetails.CustomUserRoleVoter;
 import lombok.extern.slf4j.Slf4j;
@@ -76,10 +75,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private PermissionService permissionService;
-
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService;
+    private ExtendUserDetailsService extendUserDetailsService;
 
     // @Bean
     public AccessDecisionManager accessDecisionManager() {
@@ -104,7 +100,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
         // 访问资源即url时，会通过AbstractSecurityInterceptor拦截器拦截，其中会调用FilterInvocationSecurityMetadataSource的方法来获取被拦截url所需的全部权限，
         // 在调用授权管理器AccessDecisionManager，这个授权管理器会通过spring的全局缓存SecurityContextHolder获取用户的权限信息，
         // 还会获取被拦截的url和被拦截url所需的全部权限，然后根据所配的策略(一票决定，一票否定，少数服从多数等)，如果权限足够，则返回，权限不够则报错并调用权限不足页面。
-        return new CustomInvocationSecurityMetadataSource(filterInvocationSecurityMetadataSource, permissionService);
+        return new CustomInvocationSecurityMetadataSource(filterInvocationSecurityMetadataSource, extendUserDetailsService);
     }
 
     /*
@@ -127,14 +123,13 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected UserDetailsService userDetailsService() {
-        return customUserDetailsService;
+        return extendUserDetailsService;
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         List<String> permitAllEndpointList = Arrays.asList(JwtTokenController.AUTHENTICATION_URL, JwtTokenController.REFRESH_TOKEN_URL);
-        http
-                .csrf().disable()
+        http.csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
                 // .accessDeniedHandler(new AccessDeniedHandlerImpl())
 

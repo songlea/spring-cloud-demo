@@ -12,5 +12,4 @@ public class BloomFilterTokenVerifier implements TokenVerifier {
     public boolean verify(String jti) {
         return true;
     }
-
 }

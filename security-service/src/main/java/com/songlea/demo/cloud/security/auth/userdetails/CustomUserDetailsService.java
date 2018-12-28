@@ -1,20 +1,18 @@
 package com.songlea.demo.cloud.security.auth.userdetails;
 
+import com.songlea.demo.cloud.security.model.db.SysMenu;
 import com.songlea.demo.cloud.security.model.db.SysRole;
 import com.songlea.demo.cloud.security.model.db.SysUser;
 import com.songlea.demo.cloud.security.service.PermissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.MessageSourceAware;
-import org.springframework.lang.NonNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserCache;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -31,7 +29,7 @@ import java.util.stream.Collectors;
  * @author Song Lea
  */
 @Component
-public class CustomUserDetailsService implements UserDetailsService, MessageSourceAware {
+public class CustomUserDetailsService implements ExtendUserDetailsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomUserDetailsService.class);
     private static final List<GrantedAuthority> NO_AUTHORITIES = Collections.emptyList();
@@ -44,7 +42,8 @@ public class CustomUserDetailsService implements UserDetailsService, MessageSour
     private final UserCache userCache;
 
     @Autowired
-    public CustomUserDetailsService(PermissionService permissionService, UserCache userCache) {
+    public CustomUserDetailsService(PermissionService permissionService,
+                                    @Qualifier("CustomUserCache") UserCache userCache) {
         Assert.notNull(permissionService, "permissionService cannot be null");
         Assert.notNull(userCache, "userCache cannot be null");
         this.permissionService = permissionService;
@@ -135,9 +134,13 @@ public class CustomUserDetailsService implements UserDetailsService, MessageSour
                 .authorities(combinedAuthorities).build();
     }
 
+    @Override
+    public List<SysMenu> selectAllSysMenu() {
+        return permissionService.selectAllSysMenu();
+    }
 
     @Override
-    public void setMessageSource(@NonNull MessageSource messageSource) {
-
+    public List<SysRole> selectSysRoleByMenuId(Integer menuId) {
+        return permissionService.selectSysRoleByMenuId(menuId);
     }
 }

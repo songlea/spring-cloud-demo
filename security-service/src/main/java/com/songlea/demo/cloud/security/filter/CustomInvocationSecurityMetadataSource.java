@@ -1,8 +1,8 @@
 package com.songlea.demo.cloud.security.filter;
 
+import com.songlea.demo.cloud.security.auth.userdetails.ExtendUserDetailsService;
 import com.songlea.demo.cloud.security.model.db.SysMenu;
 import com.songlea.demo.cloud.security.model.db.SysRole;
-import com.songlea.demo.cloud.security.service.PermissionService;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.web.FilterInvocation;
@@ -25,14 +25,15 @@ public class CustomInvocationSecurityMetadataSource implements FilterInvocationS
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
     private Map<String, Collection<ConfigAttribute>> urlMappingRolesMap;
-    private FilterInvocationSecurityMetadataSource superMetadataSource;
-    private PermissionService permissionService;
+
+    private final FilterInvocationSecurityMetadataSource superMetadataSource;
+    private final ExtendUserDetailsService extendUserDetailsService;
 
     public CustomInvocationSecurityMetadataSource(FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource,
-                                                  PermissionService permissionService) {
-        Assert.notNull(permissionService, "permissionService must be not null");
+                                                  ExtendUserDetailsService extendUserDetailsService) {
+        Assert.notNull(extendUserDetailsService, "extendUserDetailsService must be not null");
         this.superMetadataSource = filterInvocationSecurityMetadataSource;
-        this.permissionService = permissionService;
+        this.extendUserDetailsService = extendUserDetailsService;
     }
 
     @Override
@@ -79,10 +80,10 @@ public class CustomInvocationSecurityMetadataSource implements FilterInvocationS
     // 后期可以放到缓存中
     private void reloadUrlMappingRolesMap() {
         urlMappingRolesMap = new LinkedHashMap<>();
-        List<SysMenu> sysMenus = permissionService.selectAllSysMenu();
+        List<SysMenu> sysMenus = extendUserDetailsService.selectAllSysMenu();
         if (!CollectionUtils.isEmpty(sysMenus)) {
             for (SysMenu sysMenu : sysMenus) {
-                List<SysRole> sysRoles = permissionService.selectSysRoleByMenuId(sysMenu.getId());
+                List<SysRole> sysRoles = extendUserDetailsService.selectSysRoleByMenuId(sysMenu.getId());
                 if (!CollectionUtils.isEmpty(sysRoles)) {
                     List<ConfigAttribute> array = new ArrayList<>();
                     for (SysRole sysRole : sysRoles) {

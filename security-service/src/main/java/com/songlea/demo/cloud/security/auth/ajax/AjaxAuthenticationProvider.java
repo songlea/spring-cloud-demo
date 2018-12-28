@@ -1,22 +1,18 @@
 package com.songlea.demo.cloud.security.auth.ajax;
 
-import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetailsService;
-import com.songlea.demo.cloud.security.model.UserContext;
+import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetails;
+import com.songlea.demo.cloud.security.auth.userdetails.ExtendUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * ajax请求认证的具体实现类
@@ -25,16 +21,16 @@ import java.util.Collection;
 public class AjaxAuthenticationProvider implements AuthenticationProvider {
 
     private final PasswordEncoder passwordEncoder;
-    private final CustomUserDetailsService customUserDetailsService;
+    private final ExtendUserDetailsService extendUserDetailsService;
     private final UserDetailsChecker userDetailsChecker;
 
     @Autowired
-    public AjaxAuthenticationProvider(CustomUserDetailsService customUserDetailsService,
+    public AjaxAuthenticationProvider(ExtendUserDetailsService extendUserDetailsService,
                                       PasswordEncoder passwordEncoder, UserDetailsChecker userDetailsChecker) {
-        Assert.notNull(customUserDetailsService, "customUserDetailsService must be not null");
+        Assert.notNull(extendUserDetailsService, "extendUserDetailsService must be not null");
         Assert.notNull(passwordEncoder, "passwordEncoder must be not null");
         Assert.notNull(userDetailsChecker, "userDetailsChecker must be not null");
-        this.customUserDetailsService = customUserDetailsService;
+        this.extendUserDetailsService = extendUserDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.userDetailsChecker = userDetailsChecker;
     }
@@ -46,17 +42,15 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
         String username = (String) authentication.getPrincipal();
         String password = (String) authentication.getCredentials();
 
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = extendUserDetailsService.loadUserByUsername(username);
         // 先验证用户状态
         userDetailsChecker.check(userDetails);
-
         // 由于用户是否存在与权限列表是否为空已经在获取UserDetails时验证过,此处只需要验证密码
         if (!passwordEncoder.matches(password, userDetails.getPassword())) {
             throw new BadCredentialsException("Authentication Failed. Username or Password not valid.");
         }
-
-        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
-        UserContext userContext = UserContext.create(username, new ArrayList<>(authorities));
+        // 默认实现的CustomUserDetailsService里返回的是CustomUserDetails
+        CustomUserDetails.UserContext userContext = ((CustomUserDetails) userDetails).builderUserContext();
         return new UsernamePasswordAuthenticationToken(userContext, null, userContext.getAuthorities());
     }
 

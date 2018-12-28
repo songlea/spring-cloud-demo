@@ -1,9 +1,9 @@
 package com.songlea.demo.cloud.security.auth.ajax;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.songlea.demo.cloud.security.model.UserContext;
+import com.songlea.demo.cloud.security.auth.jwt.factory.JwtTokenFactoryImpl;
+import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetails;
 import com.songlea.demo.cloud.security.model.token.JwtToken;
-import com.songlea.demo.cloud.security.model.token.JwtTokenFactory;
 import io.jsonwebtoken.lang.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,10 +27,10 @@ import java.util.Map;
 public class AjaxAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final ObjectMapper mapper;
-    private final JwtTokenFactory tokenFactory;
+    private final JwtTokenFactoryImpl tokenFactory;
 
     @Autowired
-    public AjaxAwareAuthenticationSuccessHandler(final ObjectMapper mapper, final JwtTokenFactory tokenFactory) {
+    public AjaxAwareAuthenticationSuccessHandler(final ObjectMapper mapper, final JwtTokenFactoryImpl tokenFactory) {
         Assert.notNull(mapper, "mapper must be not null");
         Assert.notNull(tokenFactory, "tokenFactory must be not null");
         this.mapper = mapper;
@@ -40,7 +40,7 @@ public class AjaxAwareAuthenticationSuccessHandler implements AuthenticationSucc
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        UserContext userContext = (UserContext) authentication.getPrincipal();
+        CustomUserDetails.UserContext userContext = (CustomUserDetails.UserContext) authentication.getPrincipal();
 
         JwtToken accessToken = tokenFactory.createAccessJwtToken(userContext);
         JwtToken refreshToken = tokenFactory.createRefreshToken(userContext);

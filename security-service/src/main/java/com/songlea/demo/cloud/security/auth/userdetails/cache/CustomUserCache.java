@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class CustomUserCache implements UserCache {
 
-    private static final String USER_CACHE_PREFIX = "security-service_";
+    // 分组
+    private static final String USER_CACHE_PREFIX = "security-service:CustomUserCache:";
     private static final long USER_CACHE_TIME = 30 * 60;
 
     private final RedisTemplate<String, UserDetails> userDetailsRedisTemplate;
@@ -49,5 +50,4 @@ public class CustomUserCache implements UserCache {
         // 删除对应key的缓存(当更改用户的配置的时候,必须删除缓存)
         userDetailsRedisTemplate.delete(USER_CACHE_PREFIX + username);
     }
-
 }

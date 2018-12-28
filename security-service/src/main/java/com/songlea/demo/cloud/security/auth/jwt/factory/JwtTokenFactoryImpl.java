@@ -1,8 +1,10 @@
-package com.songlea.demo.cloud.security.model.token;
+package com.songlea.demo.cloud.security.auth.jwt.factory;
 
+import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetails;
 import com.songlea.demo.cloud.security.config.JwtSettings;
 import com.songlea.demo.cloud.security.model.Scopes;
-import com.songlea.demo.cloud.security.model.UserContext;
+import com.songlea.demo.cloud.security.model.token.AccessJwtToken;
+import com.songlea.demo.cloud.security.model.token.JwtToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,19 +20,19 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * JwtToken生成工厂
+ * JwtToken接口方法实现
  */
 @Component
-public class JwtTokenFactory {
+public class JwtTokenFactoryImpl implements JwtTokenFactory {
 
     private final JwtSettings settings;
 
     @Autowired
-    public JwtTokenFactory(JwtSettings settings) {
+    public JwtTokenFactoryImpl(JwtSettings settings) {
         this.settings = settings;
     }
 
-    public AccessJwtToken createAccessJwtToken(UserContext userContext) {
+    public AccessJwtToken createAccessJwtToken(CustomUserDetails.UserContext userContext) {
         if (StringUtils.isBlank(userContext.getUsername())) {
             throw new IllegalArgumentException("Cannot create JWT Token without username");
         }
@@ -53,7 +55,7 @@ public class JwtTokenFactory {
         return new AccessJwtToken(token, claims);
     }
 
-    public JwtToken createRefreshToken(UserContext userContext) {
+    public JwtToken createRefreshToken(CustomUserDetails.UserContext userContext) {
         if (StringUtils.isBlank(userContext.getUsername())) {
             throw new IllegalArgumentException("Cannot create JWT Token without username");
         }

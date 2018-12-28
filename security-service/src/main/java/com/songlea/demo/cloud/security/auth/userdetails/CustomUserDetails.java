@@ -1,6 +1,7 @@
 package com.songlea.demo.cloud.security.auth.userdetails;
 
 import com.songlea.demo.cloud.security.model.db.SysUser;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -227,6 +228,37 @@ public class CustomUserDetails implements UserDetails, CredentialsContainer {
 
         public CustomUserDetails build() {
             return new CustomUserDetails(id, username, password, status, authorities);
+        }
+    }
+
+    // 创建用户与权限对象,以便保存于jwt中
+    public UserContext builderUserContext() {
+        return new UserContext(account, new ArrayList<>(authorities));
+    }
+
+    public static class UserContext {
+
+        private final String username;
+        private final List<GrantedAuthority> authorities;
+
+        private UserContext(String username, List<GrantedAuthority> authorities) {
+            this.username = username;
+            this.authorities = authorities;
+        }
+
+        public static UserContext create(String username, List<GrantedAuthority> authorities) {
+            if (StringUtils.isBlank(username)) {
+                throw new IllegalArgumentException("Username is blank: " + username);
+            }
+            return new UserContext(username, authorities);
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public List<GrantedAuthority> getAuthorities() {
+            return authorities;
         }
     }
 }

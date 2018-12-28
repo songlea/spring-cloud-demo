@@ -1,7 +1,7 @@
 package com.songlea.demo.cloud.security.auth.jwt;
 
+import com.songlea.demo.cloud.security.auth.userdetails.CustomUserDetails;
 import com.songlea.demo.cloud.security.config.JwtSettings;
-import com.songlea.demo.cloud.security.model.UserContext;
 import com.songlea.demo.cloud.security.model.token.RawAccessJwtToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -45,9 +45,7 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
         List<GrantedAuthority> authorities = scopes.stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
-
-        UserContext context = UserContext.create(subject, authorities);
-
+        CustomUserDetails.UserContext context = CustomUserDetails.UserContext.create(subject, authorities);
         return new JwtAuthenticationToken(context, context.getAuthorities());
     }
 
