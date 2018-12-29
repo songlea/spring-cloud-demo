@@ -1,6 +1,6 @@
 package com.songlea.demo.cloud.security.filter;
 
-import com.songlea.demo.cloud.security.controller.JwtTokenController;
+import com.songlea.demo.cloud.security.auth.CustomHandlerURL;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -24,7 +24,7 @@ public class CustomCorsFilter extends CorsFilter {
         config.setMaxAge(36000L);
         config.setAllowedMethods(Arrays.asList("GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration(JwtTokenController.API_ROOT_URL, config);
+        source.registerCorsConfiguration(CustomHandlerURL.API_ROOT_URL, config);
         return source;
     }
 }

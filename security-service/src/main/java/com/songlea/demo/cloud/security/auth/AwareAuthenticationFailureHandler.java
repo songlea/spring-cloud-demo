@@ -13,21 +13,27 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 验证失败处理器,默认的为SimpleUrlAuthenticationFailureHandler
+ * AuthenticationFailureHandler:验证失败处理器,默认的为SimpleUrlAuthenticationFailureHandler
+ * AuthenticationEntryPoint:用来解决匿名用户访问无权限资源时的异常
+ * AccessDeniedHandler 用来解决认证过的用户访问无权限资源时的异常
  */
 @Component
-public class AwareAuthenticationFailureHandler implements AuthenticationFailureHandler {
+public class AwareAuthenticationFailureHandler implements AuthenticationFailureHandler, AuthenticationEntryPoint, AccessDeniedHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AwareAuthenticationFailureHandler.class);
 
@@ -42,9 +48,41 @@ public class AwareAuthenticationFailureHandler implements AuthenticationFailureH
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-                                        AuthenticationException e) throws IOException {
-        LOGGER.error("access authentication failure handler, url:{} " + request.getRequestURI(), e);
+                                        AuthenticationException authException) throws IOException {
+        LOGGER.error("验证时失败处理器,url:{} " + request.getRequestURI(), authException);
+        customFailureResult(response, authException);
+    }
 
+    /*
+   ExceptionTranslationFilter:Spring Security的核心filter之一,用来处理AuthenticationException和AccessDeniedException两种异常.
+       AuthenticationException指的是未登录状态下访问受保护资源;
+       AccessDeniedException指的是登陆了但是由于权限不足(比如普通用户访问管理员界面)
+   ExceptionTranslationFilter 持有两个处理类,分别是AuthenticationEntryPoint和AccessDeniedHandler.
+       AccessDeniedHandler:默认实现是 AccessDeniedHandlerImpl, 该类对异常的处理是返回403错误码
+       AuthenticationEntryPoint:默认实现是 LoginUrlAuthenticationEntryPoint, 该类的处理是转发或重定向到登录页面
+       规则1. 如果异常是 AuthenticationException，使用 AuthenticationEntryPoint 处理;
+       规则2. 如果异常是 AccessDeniedException 且用户是匿名用户，使用 AuthenticationEntryPoint 处理;
+       规则3. 如果异常是 AccessDeniedException 且用户不是匿名用户，交给 AccessDeniedHandler 处理。
+    */
+    @Override
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
+            throws IOException {
+        LOGGER.error("匿名用户访问异常,url:{} " + request.getRequestURI(), authException);
+        customFailureResult(response, authException);
+    }
+
+
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+        LOGGER.error("验证用户访问无权限,url:{} " + request.getRequestURI(), accessDeniedException);
+        response.setStatus(HttpStatus.FORBIDDEN.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        mapper.writeValue(response.getWriter(),
+                ErrorResponse.of(localeMessageConfig.getMessage(ErrorResponse.FORBIDDEN),
+                        ErrorCode.FORBIDDEN, HttpStatus.FORBIDDEN));
+    }
+
+    private void customFailureResult(HttpServletResponse response, AuthenticationException e) throws IOException {
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 

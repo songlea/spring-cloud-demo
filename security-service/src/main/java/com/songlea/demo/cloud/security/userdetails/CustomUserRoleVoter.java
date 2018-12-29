@@ -8,7 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
 /**
- * 自定义的角色投票器,不需要角色名必须以ROLE_开头
+ * 自定义的角色投票器
  *
  * @author Song Lea
  * @see org.springframework.security.access.vote.RoleVoter

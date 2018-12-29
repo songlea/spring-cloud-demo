@@ -16,6 +16,7 @@ public class ErrorResponse {
     public static final String AUTHENTICATION_FAILED = "authentication_failed";
     public static final String USER_ACCOUNT_IS_LOCKED_OR_DISABLE = "user_account_is_locked_or_disable";
     public static final String USER_ACCOUNT_OR_PASSWORD_HAS_EXPIRED = "user_account_or_password_has_expired";
+    public static final String FORBIDDEN = "forbidden";
 
     private final HttpStatus status;
     private final String message;

@@ -7,7 +7,6 @@ import com.songlea.demo.cloud.security.service.PermissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -42,8 +41,7 @@ public class CustomUserDetailsService implements ExtendUserDetailsService {
     private final UserCache userCache;
 
     @Autowired
-    public CustomUserDetailsService(PermissionService permissionService,
-                                    @Qualifier("CustomUserCache") UserCache userCache) {
+    public CustomUserDetailsService(PermissionService permissionService, UserCache userCache) {
         Assert.notNull(permissionService, "permissionService cannot be null");
         Assert.notNull(userCache, "userCache cannot be null");
         this.permissionService = permissionService;

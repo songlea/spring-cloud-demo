@@ -42,8 +42,7 @@ public class JwtTokenFactoryImpl implements JwtTokenFactory {
         Claims claims = Jwts.claims().setSubject(userContext.getUsername());
         claims.put("scopes", userContext.getAuthorities().stream().map(Object::toString).collect(Collectors.toList()));
         LocalDateTime currentTime = LocalDateTime.now();
-        String token = Jwts.builder()
-                .setClaims(claims)
+        String token = Jwts.builder().setClaims(claims)
                 .setIssuer(settings.getTokenIssuer())
                 .setIssuedAt(Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant()))
                 .setExpiration(Date.from(currentTime
@@ -62,8 +61,7 @@ public class JwtTokenFactoryImpl implements JwtTokenFactory {
         LocalDateTime currentTime = LocalDateTime.now();
         Claims claims = Jwts.claims().setSubject(userContext.getUsername());
         claims.put("scopes", Collections.singletonList(Scopes.REFRESH_TOKEN.authority()));
-        String token = Jwts.builder()
-                .setClaims(claims)
+        String token = Jwts.builder().setClaims(claims)
                 .setIssuer(settings.getTokenIssuer())
                 .setId(UUID.randomUUID().toString())
                 .setIssuedAt(Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant()))

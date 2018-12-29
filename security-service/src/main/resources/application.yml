@@ -14,6 +14,7 @@ demo.security.jwt:
   tokenIssuer: https://github.com/SongLea
   tokenSigningKey: xm8EV6Hy5RMFK4EEACIDAwQus
 
+
 spring:
   http:
     encoding:
@@ -55,4 +56,3 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
   params: count=countSql
-debug: true

@@ -1,7 +1,8 @@
 package com.songlea.demo.cloud.security.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.songlea.demo.cloud.security.auth.RestAuthenticationEntryPoint;
+import com.songlea.demo.cloud.security.auth.AwareAuthenticationFailureHandler;
+import com.songlea.demo.cloud.security.auth.CustomHandlerURL;
 import com.songlea.demo.cloud.security.auth.ajax.AjaxAuthenticationProvider;
 import com.songlea.demo.cloud.security.auth.ajax.AjaxLoginAuthenticationProcessingFilter;
 import com.songlea.demo.cloud.security.auth.jwt.JwtAuthenticationProvider;
@@ -9,7 +10,6 @@ import com.songlea.demo.cloud.security.auth.jwt.JwtTokenAuthenticationProcessing
 import com.songlea.demo.cloud.security.auth.jwt.SkipPathRequestMatcher;
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
 import com.songlea.demo.cloud.security.auth.userdetails.ExtendUserDetailsService;
-import com.songlea.demo.cloud.security.controller.JwtTokenController;
 import com.songlea.demo.cloud.security.filter.CustomCorsFilter;
 import com.songlea.demo.cloud.security.filter.CustomInvocationSecurityMetadataSource;
 import com.songlea.demo.cloud.security.userdetails.CustomUnanimousBased;
@@ -34,7 +34,6 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -51,13 +50,10 @@ import java.util.List;
 public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    private RestAuthenticationEntryPoint authenticationEntryPoint;
-
-    @Autowired
     private AuthenticationSuccessHandler successHandler;
 
     @Autowired
-    private AuthenticationFailureHandler failureHandler;
+    private AwareAuthenticationFailureHandler awareAuthenticationFailureHandler;
 
     @Autowired
     private AjaxAuthenticationProvider ajaxAuthenticationProvider;
@@ -94,6 +90,7 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
         return customUnanimousBased;
     }
 
+    // 用来储存请求与权限的对应关系. 一般要自己重写
     // @Bean
     public FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource(
             FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource) {
@@ -128,10 +125,14 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        List<String> permitAllEndpointList = Arrays.asList(JwtTokenController.AUTHENTICATION_URL, JwtTokenController.REFRESH_TOKEN_URL);
+        // 不验证的URL列表
+        List<String> permitAllEndpointList = Arrays.asList(
+                CustomHandlerURL.AUTHENTICATION_URL, CustomHandlerURL.REFRESH_TOKEN_URL,
+                CustomHandlerURL.SYS_USER_INSERT_URL, CustomHandlerURL.ERROR_URL);
+
         http.csrf().disable()
-                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint)
-                // .accessDeniedHandler(new AccessDeniedHandlerImpl())
+                .exceptionHandling().authenticationEntryPoint(awareAuthenticationFailureHandler)
+                .accessDeniedHandler(awareAuthenticationFailureHandler)
 
                 // Session设置
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED).enableSessionUrlRewriting(false)
@@ -140,7 +141,6 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().authorizeRequests()
                 // 登录界面不需要验证
                 .antMatchers(permitAllEndpointList.toArray(new String[0])).permitAll()
-                .antMatchers("/sys-user/**").permitAll()
                 .anyRequest().authenticated()
 
                 //.accessDecisionManager(accessDecisionManager())
@@ -183,11 +183,13 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 // 过滤器配置
                 .and().addFilterBefore(new CustomCorsFilter(), UsernamePasswordAuthenticationFilter.class)
                 // 用户或密码的POST请求登录验证(ajax的POST请求)
-                .addFilterBefore(new AjaxLoginAuthenticationProcessingFilter(JwtTokenController.AUTHENTICATION_URL, authenticationManager,
-                        successHandler, failureHandler, objectMapper), UsernamePasswordAuthenticationFilter.class)
-                // jwt请求验证
-                .addFilterBefore(new JwtTokenAuthenticationProcessingFilter(authenticationManager, failureHandler, tokenExtractor,
-                                new SkipPathRequestMatcher(permitAllEndpointList, JwtTokenController.API_ROOT_URL)),
+                .addFilterBefore(new AjaxLoginAuthenticationProcessingFilter(CustomHandlerURL.AUTHENTICATION_URL,
+                                authenticationManager, successHandler, awareAuthenticationFailureHandler, objectMapper),
+                        UsernamePasswordAuthenticationFilter.class)
+                // jwt请求验证(针对其他的所有请求)
+                .addFilterBefore(new JwtTokenAuthenticationProcessingFilter(authenticationManager,
+                                awareAuthenticationFailureHandler, tokenExtractor,
+                                new SkipPathRequestMatcher(permitAllEndpointList, CustomHandlerURL.API_ROOT_URL)),
                         UsernamePasswordAuthenticationFilter.class);
         /*
         final类HttpSecurity常用方法与说明：
