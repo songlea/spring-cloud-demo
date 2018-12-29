@@ -1,4 +1,4 @@
-package com.songlea.demo.cloud.security.userdetails;
+package com.songlea.demo.cloud.security.auth.access;
 
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.ConfigAttribute;
@@ -9,6 +9,9 @@ import java.util.Collection;
 
 /**
  * 自定义的角色投票器
+ * new WebExpressionVoter(),  // 支持表达式投票器,如hasRole("")
+ * new RoleVoter(),           // 角色投票器
+ * new AuthenticatedVoter()); // 支持IS_AUTHENTICATED认证
  *
  * @author Song Lea
  * @see org.springframework.security.access.vote.RoleVoter

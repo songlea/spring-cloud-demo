@@ -1,4 +1,4 @@
-package com.songlea.demo.cloud.security.userdetails;
+package com.songlea.demo.cloud.security.auth.access;
 
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.access.AccessDeniedException;

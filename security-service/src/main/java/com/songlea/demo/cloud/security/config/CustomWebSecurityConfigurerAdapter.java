@@ -5,22 +5,17 @@ import com.songlea.demo.cloud.security.auth.AwareAuthenticationFailureHandler;
 import com.songlea.demo.cloud.security.auth.CustomHandlerURL;
 import com.songlea.demo.cloud.security.auth.ajax.AjaxAuthenticationProvider;
 import com.songlea.demo.cloud.security.auth.ajax.AjaxLoginAuthenticationProcessingFilter;
+import com.songlea.demo.cloud.security.auth.intercept.CustomFilterSecurityInterceptor;
 import com.songlea.demo.cloud.security.auth.jwt.JwtAuthenticationProvider;
 import com.songlea.demo.cloud.security.auth.jwt.JwtTokenAuthenticationProcessingFilter;
 import com.songlea.demo.cloud.security.auth.jwt.SkipPathRequestMatcher;
 import com.songlea.demo.cloud.security.auth.jwt.extractor.TokenExtractor;
 import com.songlea.demo.cloud.security.auth.userdetails.ExtendUserDetailsService;
 import com.songlea.demo.cloud.security.filter.CustomCorsFilter;
-import com.songlea.demo.cloud.security.filter.CustomInvocationSecurityMetadataSource;
-import com.songlea.demo.cloud.security.userdetails.CustomUnanimousBased;
-import com.songlea.demo.cloud.security.userdetails.CustomUserRoleVoter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDecisionManager;
-import org.springframework.security.access.AccessDecisionVoter;
-import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -32,8 +27,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -47,7 +42,7 @@ import java.util.List;
 // securedEnabled:确定 Spring Security 安全注解[@Secured] 是否应该启用
 // jsr250Enabled:确定 JSR-250注解[@RolesAllowed..] 是否应该启用
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
-public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
+public class CustomWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private AuthenticationSuccessHandler successHandler;
@@ -73,32 +68,8 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private ExtendUserDetailsService extendUserDetailsService;
 
-    // @Bean
-    public AccessDecisionManager accessDecisionManager() {
-        List<AccessDecisionVoter<?>> decisionVoters = Arrays.asList(
-                // 支持表达式投票器,如hasRole("")
-                new WebExpressionVoter(),
-                // 自定义角色投票器,角色名不要求必须以ROLE_开头
-                new CustomUserRoleVoter(),
-                // 支持IS_AUTHENTICATED认证
-                new AuthenticatedVoter());
-        // AffirmativeBased决策器：一票通过，只要有一个投票器通过就允许访问资源
-        // UnanimousBased决策器：必须所有投票器都通过
-        CustomUnanimousBased customUnanimousBased = new CustomUnanimousBased(decisionVoters);
-        // 当所有的投票都弃权后则抛出AccessDeniedException
-        customUnanimousBased.setAllowIfAllAbstainDecisions(true);
-        return customUnanimousBased;
-    }
-
-    // 用来储存请求与权限的对应关系. 一般要自己重写
-    // @Bean
-    public FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource(
-            FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource) {
-        // 访问资源即url时，会通过AbstractSecurityInterceptor拦截器拦截，其中会调用FilterInvocationSecurityMetadataSource的方法来获取被拦截url所需的全部权限，
-        // 在调用授权管理器AccessDecisionManager，这个授权管理器会通过spring的全局缓存SecurityContextHolder获取用户的权限信息，
-        // 还会获取被拦截的url和被拦截url所需的全部权限，然后根据所配的策略(一票决定，一票否定，少数服从多数等)，如果权限足够，则返回，权限不够则报错并调用权限不足页面。
-        return new CustomInvocationSecurityMetadataSource(filterInvocationSecurityMetadataSource, extendUserDetailsService);
-    }
+    @Autowired
+    private FilterInvocationSecurityMetadataSource filterInvocationSecurityMetadataSource;
 
     /*
     AuthenticationManager：用户认证的管理类，所有的认证请求（比如login）都会通过提交一个token给AuthenticationManager的authenticate()方法来实现。
@@ -190,7 +161,9 @@ public class CustomSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(new JwtTokenAuthenticationProcessingFilter(authenticationManager,
                                 awareAuthenticationFailureHandler, tokenExtractor,
                                 new SkipPathRequestMatcher(permitAllEndpointList, CustomHandlerURL.API_ROOT_URL)),
-                        UsernamePasswordAuthenticationFilter.class);
+                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new CustomFilterSecurityInterceptor(filterInvocationSecurityMetadataSource),
+                        FilterSecurityInterceptor.class);
         /*
         final类HttpSecurity常用方法与说明：
            1、openidLogin()：用于基于 OpenId 的验证。0

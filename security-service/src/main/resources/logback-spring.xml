@@ -9,7 +9,7 @@
     <!--添加自定义的日志文件输出-->
     <appender name="dailyRollingFileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/oauth2-service/oauth2-%d{yyyy-MM-dd}.log</FileNamePattern>
+            <FileNamePattern>logs/security-service/security-%d{yyyy-MM-dd}.log</FileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>

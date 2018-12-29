@@ -7,6 +7,8 @@ import com.songlea.demo.cloud.security.service.PermissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -140,5 +143,25 @@ public class CustomUserDetailsService implements ExtendUserDetailsService {
     @Override
     public List<SysRole> selectSysRoleByMenuId(Integer menuId) {
         return permissionService.selectSysRoleByMenuId(menuId);
+    }
+
+    @Override
+    public Map<String, Collection<ConfigAttribute>> loadUrlMappingRoles() {
+        Map<String, Collection<ConfigAttribute>> urlMappingRolesMap = new LinkedHashMap<>();
+        List<SysMenu> sysMenus = selectAllSysMenu();
+        if (!CollectionUtils.isEmpty(sysMenus)) {
+            for (SysMenu sysMenu : sysMenus) {
+                List<SysRole> sysRoles = selectSysRoleByMenuId(sysMenu.getId());
+                if (!CollectionUtils.isEmpty(sysRoles)) {
+                    List<ConfigAttribute> array = new ArrayList<>();
+                    for (SysRole sysRole : sysRoles) {
+                        ConfigAttribute cfg = new SecurityConfig(sysRole.getCode());
+                        array.add(cfg);
+                    }
+                    urlMappingRolesMap.put(sysMenu.getUrl(), array);
+                }
+            }
+        }
+        return urlMappingRolesMap;
     }
 }
