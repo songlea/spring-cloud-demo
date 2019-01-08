@@ -2,11 +2,11 @@ package com.songlea.demo.cloud.security.controller;
 
 import com.songlea.demo.cloud.security.mapper.SysUserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.security.RolesAllowed;
@@ -23,6 +23,7 @@ public class TestEndpoint {
 
     @GetMapping("/product/{id}")
     @RolesAllowed(value = {"ROLE_ADMIN", "ROLE_ANONYMOUS"})
+    @PreAuthorize("hasAuthority('TEMP')")
     public String getProduct(@PathVariable String id) {
 
         //for debug

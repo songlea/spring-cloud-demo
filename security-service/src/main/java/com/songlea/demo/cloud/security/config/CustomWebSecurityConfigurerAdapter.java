@@ -162,6 +162,7 @@ public class CustomWebSecurityConfigurerAdapter extends WebSecurityConfigurerAda
                                 awareAuthenticationFailureHandler, tokenExtractor,
                                 new SkipPathRequestMatcher(permitAllEndpointList, CustomHandlerURL.API_ROOT_URL)),
                         UsernamePasswordAuthenticationFilter.class)
+                // 负责用户是否有对该url的访问权限
                 .addFilterBefore(new CustomFilterSecurityInterceptor(filterInvocationSecurityMetadataSource),
                         FilterSecurityInterceptor.class);
         /*
