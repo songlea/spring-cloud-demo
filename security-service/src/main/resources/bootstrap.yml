@@ -15,6 +15,13 @@ server:
   port: @service.security.port@
   compression:
     enabled: true
+  ssl:
+    enabled: true
+    key-alias: songlea
+    key-password: songlea
+    key-store-password: songlea
+    key-store-type: JKS
+    key-store: "classpath:spring-security.keystore"
 
 spring:
   application:
