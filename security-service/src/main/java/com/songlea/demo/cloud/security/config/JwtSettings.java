@@ -2,6 +2,7 @@ package com.songlea.demo.cloud.security.config;
 
 import com.songlea.demo.cloud.security.model.token.JwtToken;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
