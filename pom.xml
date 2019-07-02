@@ -29,6 +29,7 @@
         <module>business-service</module>
         <module>monitor-service</module>
         <module>security-service</module>
+        <module>kotlin-service</module>
     </modules>
 
     <parent>
