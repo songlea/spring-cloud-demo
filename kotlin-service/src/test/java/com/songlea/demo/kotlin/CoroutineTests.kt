@@ -43,6 +43,7 @@ class CoroutineTests {
                 println("World!")
             }
             println("Hello,")
+            // 可以等待协程执行完成
             job.join()
         }
     }
@@ -62,4 +63,45 @@ class CoroutineTests {
         }
     }
 
+    @Test
+    fun testCancelAndJoin() {
+        // 如果协程正在执行计算任务，并且没有检查取消的话，那么它是不能被取消的，isActive可以显式的检查取消状态
+        runBlocking {
+            val startTime = System.currentTimeMillis()
+            val job = launch(Dispatchers.Default) {
+                var nextPrintTime = startTime
+                var i = 0
+                while (isActive) {
+                    if (System.currentTimeMillis() >= nextPrintTime) {
+                        println("job: I'm sleeping ${i++} ...")
+                        nextPrintTime += 500L
+                    }
+                }
+            }
+            delay(1300L) // 等待一段时间
+            println("main: I'm tired of waiting!")
+            job.cancelAndJoin() // 取消该作业并等待它结束
+            println("main: Now I can quit.")
+        }
+    }
+
+    @Test
+    fun testFinally() {
+        runBlocking {
+            val job = launch {
+                try {
+                    repeat(1000) { i ->
+                        println("job: I'm sleeping $i ...")
+                        delay(500L)
+                    }
+                } finally {
+                    println("job: I'm running finally")
+                }
+            }
+            delay(1300L) // 延迟一段时间
+            println("main: I'm tired of waiting!")
+            job.cancelAndJoin() // 取消该作业并且等待它结束
+            println("main: Now I can quit.")
+        }
+    }
 }
