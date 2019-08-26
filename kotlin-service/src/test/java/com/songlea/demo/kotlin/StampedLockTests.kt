@@ -8,6 +8,9 @@ import java.util.concurrent.locks.StampedLock
 import kotlin.concurrent.thread
 import kotlin.math.sqrt
 
+/**
+ * 可乐观的读锁
+ */
 class StampedLockTests {
 
     class Point(private var x: Double, private var y: Double) {
@@ -49,22 +52,22 @@ class StampedLockTests {
     @Test
     fun test() {
         val point = Point(1.0, 2.0)
-        val start = System.nanoTime()
+        val start = System.currentTimeMillis()
         // 协程
         runBlocking {
-            for (i in 0..10) {
+            for (i in 0..10000) {
                 launch {
                     point.move(2.0, 3.0)
                     println("Now distance: ${point.distanceFromOrigin()}")
                 }
             }
         }
-        println("coroutine take time:${System.nanoTime() - start}")
+        println("coroutine take time:${System.currentTimeMillis() - start}")
         // 线程
-        val countDownLatch = CountDownLatch(11)
-        val start2 = System.nanoTime()
+        val countDownLatch = CountDownLatch(10000)
+        val start2 = System.currentTimeMillis()
         val point2 = Point(1.0, 2.0)
-        for (i in 0..10) {
+        for (i in 0..10000) {
             thread {
                 point2.move(2.0, 3.0)
                 println("Now distance: ${point2.distanceFromOrigin()}")
@@ -72,7 +75,7 @@ class StampedLockTests {
             }
         }
         countDownLatch.await()
-        println("thread take time:${System.nanoTime() - start2}")
+        println("thread take time:${System.currentTimeMillis() - start2}")
 
     }
 }

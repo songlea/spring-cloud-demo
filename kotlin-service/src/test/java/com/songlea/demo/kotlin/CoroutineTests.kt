@@ -1,6 +1,7 @@
 package com.songlea.demo.kotlin
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -103,5 +104,34 @@ class CoroutineTests {
             job.cancelAndJoin() // 取消该作业并且等待它结束
             println("main: Now I can quit.")
         }
+    }
+
+    @Test
+    fun testChannel() {
+        runBlocking {
+            val channel = Channel<Int>()
+            launch {
+                //  这里可能是消耗大量 CPU 运算的异步逻辑，我们将仅仅做 5 次整数的平方并发送
+                for (x in 1..5) {
+                    channel.send(x * x)
+                }
+                // 我们结束发送
+                channel.close()
+            }
+            for (y in channel) {
+                println(y)
+            }
+            println("Done!")
+        }
+    }
+
+    suspend fun foo(): List<Int> {
+        delay(1000)
+        return listOf(1, 2, 3)
+    }
+
+    @Test
+    fun testSuspend2() = runBlocking {
+        foo().forEach { value -> println(value) }
     }
 }
